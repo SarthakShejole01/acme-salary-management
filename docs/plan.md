@@ -1,0 +1,65 @@
+# Implementation plan
+
+Planning notes for building ACME Salary Management. Written before coding; updated as the work evolves. Read together with [`requirements.md`](requirements.md), [`architecture.md`](architecture.md) and [`../CLAUDE.md`](../CLAUDE.md).
+
+## Stack
+
+Java 21 · Spring Boot 3 · Gradle (Kotlin DSL) · Spring Data JPA/Hibernate · Flyway · PostgreSQL · Angular (standalone, signals) · PrimeNG · JUnit 5/AssertJ/Mockito/Testcontainers · GitHub Actions · Docker (single image) · Render + Neon Postgres.
+
+## Working method
+
+- Test-first: `test:` commit (red) → `feat:` commit (green) → optional `refactor:` commit.
+- One behaviour per commit, all tests green before committing. Push after every few commits.
+- Stop after each commit for human review.
+- Record every AI mistake caught in [`ai-usage.md`](ai-usage.md).
+
+## Steps
+
+Status: ☐ todo · ◐ in progress · ☑ done
+
+### Step 1 — Docs before code ☑
+1. README skeleton, `.gitignore`, `.gitattributes`
+2. `docs/requirements.md`
+3. `docs/architecture.md` + ADRs 001–005
+4. `CLAUDE.md` + `docs/ai-usage.md` + this plan
+
+### Step 2 — Scaffold & CI ☐
+5. Spring Boot backend in `backend/` (Web, Data JPA, Validation, Flyway, PostgreSQL, Actuator, Testcontainers). Base package `com.acme.salary`. Context-loads test passes.
+6. Angular frontend in `frontend/` (standalone, routing, SCSS, PrimeNG). Dev proxy `/api` → `localhost:8080`.
+7. `docker-compose.yml` with PostgreSQL 16 for local dev; `application.yml` reads DB settings from env vars with local defaults.
+8. `.github/workflows/ci.yml`: backend `./gradlew test` (Docker available for Testcontainers) + frontend `npm ci && npm test -- --watch=false` + `npm run build`.
+
+### Step 3 — Employee core (TDD) ☐
+9. `Money` value object (BigDecimal amount, `Currency`; rejects null/negative; scale 2; equality by value). Country → currency mapping (`Country` enum: US, GB, IN, DE, FR, CA, AU, SG).
+10. Flyway `V1__create_employee.sql` (+ indexes from architecture.md) and `Employee` entity.
+11. `EmployeeService` create/update: unique employee code & email, salary > 0, currency derived from country, hire date not in the future (injected `Clock`).
+12. `EmployeeController` CRUD with `@WebMvcTest`; errors as RFC 7807 `ProblemDetail` via `GlobalExceptionHandler`; 404 for missing, 409 for duplicates, 400 for validation.
+13. Paginated search/filter: `GET /api/employees?page&size&sort&search&country&department&jobTitle` using JPA Specifications; repository test with Testcontainers. `GET /api/reference-data` for dropdowns.
+
+### Step 4 — Seed 10,000 employees ☐
+14. `EmployeeGenerator` (pure, seeded `Random`): names from `first_names.txt` / `last_names.txt`; salary = title band × country factor ± bounded noise; tests for count, determinism, ranges, unique codes/emails.
+15. `SeedRunner`: JDBC batch insert (batch 1,000), idempotent (skips if data exists; `--reset` option), runs via Spring profile `seed`. Record timing for `performance.md`.
+
+### Step 5 — Insights ☐
+16. `GET /api/insights/countries` — headcount, min, max, avg, median (`percentile_cont`) per country in local currency.
+17. `GET /api/insights/countries/{code}/job-titles` — per-title stats within a country.
+18. `GET /api/insights/countries/{code}/distribution` — histogram buckets (`width_bucket`).
+19. `V2__create_exchange_rate.sql` (fixed, dated rates) + `GET /api/insights/summary` — org totals in USD, flagged approximate, with rate date.
+20. `GET /api/employees/export.csv` — filtered CSV export (streamed).
+Each query tested on a small known dataset (e.g. 5 salaries → known median).
+
+### Step 6 — UI ☐
+21. Employees page: PrimeNG lazy table, debounced search, country/department/title filters, sorting.
+22. Add/edit dialog (reactive form, validation messages mirroring backend rules, server error display); delete with confirmation; CSV export button.
+23. Insights dashboard: country comparison table, job-title drill-down, distribution chart, summary cards ("≈ USD, rates as of …").
+24. Loading / empty / error states everywhere; component & service tests.
+
+### Step 7 — Ship ☐
+25. Multi-stage `Dockerfile` (node build → gradle build → JRE runtime), Angular served by Spring Boot.
+26. Deploy to Render with Neon Postgres; basic auth via env vars (ADR 005); seed production.
+27. `docs/performance.md` (seed timing, query timings at 10k, indexes, paging); finish `ai-usage.md`; final README (run locally, run tests, live URL, screenshots).
+28. 3–5 min demo video: problem → list & filters → add/edit with validation → insights ("median engineer salary IN vs US") → tests/CI → one trade-off.
+
+## Open questions / decisions log
+
+- _Add decisions here as they come up, with date and reasoning._
