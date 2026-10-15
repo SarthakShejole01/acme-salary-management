@@ -1,7 +1,10 @@
 package com.acme.salary.employee;
 
+import com.acme.salary.common.PageResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +26,12 @@ class EmployeeController {
 
 	EmployeeController(EmployeeService service) {
 		this.service = service;
+	}
+
+	/** Query parameters: search, country, department, jobTitle, page, size (max 100), sort. */
+	@GetMapping
+	PageResponse<EmployeeResponse> search(EmployeeSearchCriteria criteria, @PageableDefault(size = 20) Pageable pageable) {
+		return this.service.search(criteria, pageable);
 	}
 
 	@GetMapping("/{id}")
