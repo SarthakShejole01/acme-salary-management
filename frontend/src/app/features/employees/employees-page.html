@@ -8,11 +8,28 @@
     <mat-icon fontSet="material-symbols-outlined">download</mat-icon>
     Export CSV
   </a>
-  <button mat-flat-button data-testid="add" (click)="add()">
+  <button
+    mat-flat-button
+    data-testid="add"
+    [disabled]="referenceStatus() !== 'loaded'"
+    (click)="add()"
+  >
     <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
     Add employee
   </button>
 </header>
+
+@if (referenceStatus() === 'error') {
+  <div class="reference-warning" role="alert" data-testid="reference-warning">
+    <span>
+      Could not load the filter and form options. Adding and editing employees is unavailable until
+      they load.
+    </span>
+    <button mat-button data-testid="retry-reference-data" (click)="retryReferenceData()">
+      Retry
+    </button>
+  </div>
+}
 
 <section class="filters" aria-label="Filters">
   <mat-form-field appearance="outline" class="search">
@@ -85,6 +102,7 @@
   <div class="table-container">
     <table
       mat-table
+      aria-label="Employees"
       matSort
       [dataSource]="result()?.content ?? []"
       [matSortActive]="query().sort.active"
@@ -142,6 +160,7 @@
           <button
             mat-icon-button
             data-testid="edit"
+            [disabled]="referenceStatus() !== 'loaded'"
             [attr.aria-label]="'Edit ' + e.fullName"
             matTooltip="Edit"
             (click)="edit(e)"

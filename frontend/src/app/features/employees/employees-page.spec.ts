@@ -399,12 +399,15 @@ describe('EmployeesPage', () => {
       'Could not load the filter and form options',
     );
     expect(addButton(element).disabled).toBe(true);
-    expect((element.querySelector('tr.mat-mdc-row [data-testid="edit"]') as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (element.querySelector('tr.mat-mdc-row [data-testid="edit"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 
   it('loads_the_form_options_again_on_retry_and_enables_add', async () => {
     let attempt = 0;
-    api.referenceResult = () => (++attempt === 1 ? throwError(() => new Error('down')) : of(REFERENCE_DATA));
+    api.referenceResult = () =>
+      ++attempt === 1 ? throwError(() => new Error('down')) : of(REFERENCE_DATA);
     const element = await render();
 
     await click(element, '[data-testid="retry-reference-data"]');
