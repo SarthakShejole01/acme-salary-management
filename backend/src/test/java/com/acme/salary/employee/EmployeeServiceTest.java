@@ -197,7 +197,7 @@ class EmployeeServiceTest {
 		when(this.repository.findById(42L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> this.service.delete(42L)).isInstanceOf(EmployeeNotFoundException.class);
-		verify(this.repository, never()).delete(any());
+		verify(this.repository, never()).delete(any(Employee.class));
 	}
 
 	private static Employee existingUsEmployee(long id) {
