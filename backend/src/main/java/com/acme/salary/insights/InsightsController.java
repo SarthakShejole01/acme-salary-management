@@ -27,4 +27,9 @@ class InsightsController {
 		return this.service.jobTitleInsights(country);
 	}
 
+	@GetMapping("/countries/{code}/distribution")
+	SalaryDistribution distribution(@PathVariable("code") Country country) {
+		return this.service.distribution(country);
+	}
+
 }
