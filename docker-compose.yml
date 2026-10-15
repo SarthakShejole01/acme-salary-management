@@ -1,0 +1,22 @@
+# Local development database. Not used by tests (they start their own
+# PostgreSQL via Testcontainers) and not used in production.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-acme_salary}
+      POSTGRES_USER: ${DB_USERNAME:-acme}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-acme}
+    ports:
+      # 5433 on the host so it does not clash with a locally installed PostgreSQL.
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
