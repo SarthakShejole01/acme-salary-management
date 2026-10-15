@@ -5,7 +5,10 @@ import com.acme.salary.employee.Country;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -43,6 +46,20 @@ class InsightsQueries {
 			order by job_title
 			""";
 
+	private static final String SALARY_RANGE = """
+			select min(salary) as min_salary, max(salary) as max_salary, currency
+			from employee
+			where country_code = ?
+			group by currency
+			""";
+
+	private static final String BUCKET_COUNTS = """
+			select width_bucket(salary, ?, ?, ?) as bucket, count(*) as headcount
+			from employee
+			where country_code = ?
+			group by bucket
+			""";
+
 	private final JdbcTemplate jdbc;
 
 	InsightsQueries(JdbcTemplate jdbc) {
@@ -64,6 +81,27 @@ class InsightsQueries {
 						money(row, "min_salary"), money(row, "max_salary"), money(row, "avg_salary"),
 						money(row, "median_salary")),
 				country.name());
+	}
+
+	Optional<SalaryRange> salaryRange(Country country) {
+		return this.jdbc
+			.query(SALARY_RANGE,
+					(row, rowNumber) -> new SalaryRange(row.getBigDecimal("min_salary"), row.getBigDecimal("max_salary"),
+							Currency.getInstance(row.getString("currency"))),
+					country.name())
+			.stream()
+			.findFirst();
+	}
+
+	/** Headcount per bucket number (1-based); buckets nobody falls into are absent. */
+	Map<Integer, Long> bucketCounts(Country country, HistogramBins bins) {
+		Map<Integer, Long> counts = new HashMap<>();
+		this.jdbc.query(BUCKET_COUNTS,
+				(row) -> {
+					counts.put(row.getInt("bucket"), row.getLong("headcount"));
+				},
+				bins.start(), bins.end(), bins.count(), country.name());
+		return counts;
 	}
 
 	private static Money money(ResultSet row, String column) throws SQLException {
