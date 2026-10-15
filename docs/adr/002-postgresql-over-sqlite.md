@@ -13,7 +13,7 @@ Use PostgreSQL everywhere: local development (Docker Compose), integration tests
 ## Reasons
 
 - **Deployment:** free/low-cost hosts use ephemeral disks; a SQLite file is wiped on every redeploy. Managed Postgres persists.
-- **Analytics:** Postgres has `percentile_cont` for exact medians and `width_bucket` for histograms; SQLite has neither.
+- **Analytics:** Postgres has `percentile_cont` for exact medians and `width_bucket` for histograms; SQLite has neither. *(Amended 2026-10-15: the median uses `percentile_disc` so it stays exact `numeric`; see [plan decisions](../plan.md#open-questions--decisions-log).)*
 - **Test fidelity:** running the same engine in tests and production means aggregate SQL is tested for real, not against an H2 dialect that behaves differently.
 
 ## Consequences

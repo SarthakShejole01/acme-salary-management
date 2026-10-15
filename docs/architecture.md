@@ -36,7 +36,7 @@ Rules:
 - Controllers are thin: map HTTP ⇄ DTOs and delegate. No business logic.
 - Services hold the domain rules and are unit-tested without Spring.
 - Entities never leave the service layer; the API speaks DTOs.
-- Aggregations (`GROUP BY`, `percentile_cont`) run in SQL — the database is built for this, and it avoids loading 10k rows into memory.
+- Aggregations (`GROUP BY`, `percentile_disc` for an exact median) run in SQL — the database is built for this, and it avoids loading 10k rows into memory.
 - Schema changes go through Flyway migrations only.
 
 ## Frontend structure

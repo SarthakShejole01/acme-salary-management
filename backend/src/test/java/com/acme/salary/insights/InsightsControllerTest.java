@@ -1,0 +1,49 @@
+package com.acme.salary.insights;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+
+import com.acme.salary.currency.Money;
+import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
+
+@WebMvcTest(InsightsController.class)
+class InsightsControllerTest {
+
+	@Autowired
+	private MockMvcTester mvc;
+
+	@MockitoBean
+	private InsightsService service;
+
+	@Test
+	void returns_country_insights_with_amounts_in_local_currency() {
+		Currency inr = Currency.getInstance("INR");
+		given(this.service.countryInsights()).willReturn(List.of(new CountryInsight("IN", "India", 3,
+				new Money(new BigDecimal("500000"), inr), new Money(new BigDecimal("3600000"), inr),
+				new Money(new BigDecimal("1766666.67"), inr), new Money(new BigDecimal("1200000"), inr))));
+
+		assertThat(this.mvc.get().uri("/api/insights/countries"))
+			.hasStatusOk()
+			.bodyJson().isStrictlyEqualTo("""
+					[
+					  {
+					    "countryCode": "IN",
+					    "countryName": "India",
+					    "headcount": 3,
+					    "min":     { "amount": 500000.00,  "currency": "INR" },
+					    "max":     { "amount": 3600000.00, "currency": "INR" },
+					    "average": { "amount": 1766666.67, "currency": "INR" },
+					    "median":  { "amount": 1200000.00, "currency": "INR" }
+					  }
+					]
+					""");
+	}
+
+}
