@@ -16,7 +16,7 @@ See [`docs/requirements.md`](docs/requirements.md) for scope and the deliberate 
 |------------|--------|
 | Backend    | Java 21, Spring Boot 4, Spring Data JPA (Hibernate), Flyway, Gradle (Kotlin DSL) |
 | Database   | PostgreSQL |
-| Frontend   | Angular (standalone components, signals), TypeScript, PrimeNG |
+| Frontend   | Angular (standalone components, signals), TypeScript, Angular Material |
 | Testing    | JUnit 5, AssertJ, Mockito, Testcontainers · Angular unit tests |
 | CI/CD      | GitHub Actions · Docker |
 
@@ -24,7 +24,7 @@ See [`docs/requirements.md`](docs/requirements.md) for scope and the deliberate 
 
 ```
 backend/    Spring Boot API (Gradle, Java 21)
-frontend/   Angular application (to be added)
+frontend/   Angular application (Angular 22, Material)
 docs/       Requirements, architecture, decision records, AI usage notes
 CLAUDE.md   Working agreement for the AI coding agent
 ```
