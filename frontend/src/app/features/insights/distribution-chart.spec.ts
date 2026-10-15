@@ -3,7 +3,11 @@ import { DistributionChart } from './distribution-chart';
 import { DistributionBucket, Money } from '../../core/models';
 
 function bucket(from: number, to: number, headcount: number): DistributionBucket {
-  return { from: { amount: from, currency: 'GBP' }, to: { amount: to, currency: 'GBP' }, headcount };
+  return {
+    from: { amount: from, currency: 'GBP' },
+    to: { amount: to, currency: 'GBP' },
+    headcount,
+  };
 }
 
 describe('DistributionChart', () => {
@@ -24,7 +28,9 @@ describe('DistributionChart', () => {
 
   it('scales_bar_heights_to_the_largest_bucket', async () => {
     const element = await render(buckets);
-    const heights = Array.from(element.querySelectorAll('rect.bar')).map((bar) => Number(bar.getAttribute('height')));
+    const heights = Array.from(element.querySelectorAll('rect.bar')).map((bar) =>
+      Number(bar.getAttribute('height')),
+    );
 
     expect(heights[1]).toBeGreaterThan(heights[0]);
     expect(heights[0] / heights[1]).toBeCloseTo(5 / 87, 2);
@@ -42,19 +48,25 @@ describe('DistributionChart', () => {
   it('uses_the_singular_for_one_employee', async () => {
     const element = await render([bucket(10000, 20000, 1)]);
 
-    expect(element.querySelector('rect.bar title')?.textContent).toBe('£10,000 – £20,000: 1 employee');
+    expect(element.querySelector('rect.bar title')?.textContent).toBe(
+      '£10,000 – £20,000: 1 employee',
+    );
   });
 
   it('labels_the_axis_with_the_bucket_edges', async () => {
     const element = await render(buckets);
-    const labels = Array.from(element.querySelectorAll('text.edge')).map((text) => text.textContent?.trim());
+    const labels = Array.from(element.querySelectorAll('text.edge')).map((text) =>
+      text.textContent?.trim(),
+    );
 
     expect(labels).toEqual(['£10,000', '£20,000', '£30,000', '£40,000']);
   });
 
   it('keeps_the_outer_axis_labels_inside_the_drawing', async () => {
     const element = await render(buckets);
-    const labelXs = Array.from(element.querySelectorAll('text.edge')).map((text) => Number(text.getAttribute('x')));
+    const labelXs = Array.from(element.querySelectorAll('text.edge')).map((text) =>
+      Number(text.getAttribute('x')),
+    );
 
     // A label centred on the first or last edge is about 40 units wide, so those edges need room each side.
     expect(labelXs[0]).toBeGreaterThanOrEqual(36);
@@ -70,9 +82,19 @@ describe('DistributionChart', () => {
     }));
 
     const element = await render(crowded);
-    const labels = Array.from(element.querySelectorAll('text.edge')).map((text) => text.textContent?.trim());
+    // Intl separates "SGD" from the number with a non-breaking space.
+    const labels = Array.from(element.querySelectorAll('text.edge')).map((text) =>
+      text.textContent?.trim().replace(/ /g, ' '),
+    );
 
-    expect(labels).toEqual(['SGD 20,000', 'SGD 60,000', 'SGD 100,000', 'SGD 140,000', 'SGD 180,000', 'SGD 220,000']);
+    expect(labels).toEqual([
+      'SGD 20,000',
+      'SGD 60,000',
+      'SGD 100,000',
+      'SGD 140,000',
+      'SGD 180,000',
+      'SGD 220,000',
+    ]);
   });
 
   it('describes_the_chart_for_screen_readers', async () => {
