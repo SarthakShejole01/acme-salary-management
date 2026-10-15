@@ -7,5 +7,10 @@ export const routes: Routes = [
     title: 'Employees · ACME Salary Management',
     loadComponent: () => import('./features/employees/employees-page').then((m) => m.EmployeesPage),
   },
+  {
+    path: 'insights',
+    title: 'Pay insights · ACME Salary Management',
+    loadComponent: () => import('./features/insights/insights-page').then((m) => m.InsightsPage),
+  },
   { path: '**', redirectTo: 'employees' },
 ];
