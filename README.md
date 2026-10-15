@@ -31,7 +31,22 @@ CLAUDE.md   Working agreement for the AI coding agent
 
 ## Getting started
 
-_To be added once the backend and frontend are scaffolded._
+**Prerequisites:** Java 21, Node 24.15+ (Angular 22), Docker Desktop.
+
+```bash
+# 1. Database — PostgreSQL 16 on localhost:5433 (5433 avoids clashing with a local install)
+docker compose up -d
+
+# 2. Backend — http://localhost:8080 (health: /actuator/health)
+cd backend && ./gradlew bootRun
+
+# 3. Frontend — http://localhost:4200, proxies /api to the backend
+cd frontend && npm ci && npm start
+```
+
+Defaults work out of the box. To override database settings, copy `.env.example` to `.env` (git-ignored) or set the `DB_*` environment variables.
+
+**Tests:** `cd backend && ./gradlew test` (needs Docker running — Testcontainers starts its own PostgreSQL) · `cd frontend && npm test -- --watch=false`
 
 ## Documentation
 
