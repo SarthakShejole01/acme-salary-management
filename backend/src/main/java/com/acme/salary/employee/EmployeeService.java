@@ -36,6 +36,21 @@ public class EmployeeService {
 		return EmployeeResponse.from(this.repository.save(employee));
 	}
 
+	public EmployeeResponse update(Long id, EmployeeRequest request) {
+		Employee employee = this.repository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
+		validateFields(request);
+		if (this.repository.existsByEmployeeCodeAndIdNot(request.employeeCode(), id)) {
+			throw duplicateCode(request);
+		}
+		if (this.repository.existsByEmailIgnoreCaseAndIdNot(request.email(), id)) {
+			throw duplicateEmail(request);
+		}
+		employee.changeDetails(request.employeeCode(), request.fullName(), request.email(), request.jobTitle(),
+				request.department(), request.country(), request.salary(), request.employmentType(),
+				request.hireDate());
+		return EmployeeResponse.from(employee);
+	}
+
 	private void validateFields(EmployeeRequest request) {
 		if (request.salary().signum() <= 0) {
 			throw new InvalidEmployeeException("salary", "Salary must be greater than zero");
