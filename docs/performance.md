@@ -34,3 +34,13 @@ Targets from [`requirements.md`](requirements.md): list / search / filter **< 30
 First run into an empty database (cold JVM): 3,410 ms. A second run without `--reset` is skipped.
 
 **Choices.** JDBC batches instead of JPA `saveAll` (no per-entity persistence-context overhead, one round trip per 1,000 rows); one transaction, so a failed seed leaves no partial data; `reWriteBatchedInserts` turns each batch into multi-row `INSERT` statements and is now on by default in `application.yml`.
+
+## Insights (plan items 16–20)
+
+Same setup, against the 10,000 seeded employees. End-to-end HTTP, best of 5 after warm-up.
+
+| Request | Time |
+|---------|------|
+| `GET /api/insights/countries` (8 countries: headcount, min, max, avg, exact median) | 18 ms |
+
+One `GROUP BY country_code, currency` query with `percentile_disc`; no rows are loaded into the application.

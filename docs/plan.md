@@ -40,7 +40,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 14. `EmployeeGenerator` (pure, seeded `Random`): names from `first_names.txt` / `last_names.txt`; salary = title band × country factor ± bounded noise; tests for count, determinism, ranges, unique codes/emails.
 15. `SeedRunner`: JDBC batch insert (batch 1,000), idempotent (skips if data exists; `--reset` option), runs via Spring profile `seed`. Record timing for `performance.md`.
 
-### Step 5 — Insights ☐
+### Step 5 — Insights ◐
 16. `GET /api/insights/countries` — headcount, min, max, avg, median (`percentile_cont`) per country in local currency.
 17. `GET /api/insights/countries/{code}/job-titles` — per-title stats within a country.
 18. `GET /api/insights/countries/{code}/distribution` — histogram buckets (`width_bucket`).
@@ -72,3 +72,4 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — List API returns our own `PageResponse`**, not Spring's `Page` (whose JSON is not a stable contract). Sorting is whitelisted (unknown property → 400), defaults to name with `id` as tie-breaker; page size capped at 100.
 - **2026-10-15 — "Hire date not in the future" uses today in UTC** (injected `Clock`). Known limitation: between 00:00 and 05:30 IST a same-day hire in India is still "tomorrow" in UTC and is rejected. Acceptable for v1; revisit if HR reports it.
 - **2026-10-15 — Seed via JDBC batches with `reWriteBatchedInserts`.** 10k employees in ~0.9 s (vs ~2.4 s without the driver flag). Fixed random seed 42; idempotent unless `--reset`. See [performance.md](performance.md).
+- **2026-10-15 — Exact median without `percentile_cont`.** `percentile_cont` only accepts `double precision`, which would push salaries through floating point. Median = mean of `percentile_disc(0.5)` ascending and descending (lower and upper middle values), staying in `numeric`; average and median rounded half-up to cents.
