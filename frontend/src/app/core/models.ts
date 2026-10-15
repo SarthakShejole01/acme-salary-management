@@ -77,3 +77,43 @@ export interface Problem {
   detail?: string;
   errors?: { field: string; message: string }[];
 }
+
+export interface CountryInsight {
+  countryCode: string;
+  countryName: string;
+  headcount: number;
+  min: Money;
+  max: Money;
+  average: Money;
+  median: Money;
+}
+
+export interface JobTitleInsight {
+  jobTitle: string;
+  headcount: number;
+  min: Money;
+  max: Money;
+  average: Money;
+  median: Money;
+}
+
+export interface DistributionBucket {
+  from: Money;
+  to: Money;
+  headcount: number;
+}
+
+export interface SalaryDistribution {
+  countryCode: string;
+  currency: string;
+  buckets: DistributionBucket[];
+}
+
+/** Organisation totals in USD at fixed rates: always approximate, valid on {@code ratesAsOf}. */
+export interface OrgSummary {
+  headcount: number;
+  totalAnnualCost: Money;
+  averageSalary: Money | null;
+  approximate: boolean;
+  ratesAsOf: string;
+}
