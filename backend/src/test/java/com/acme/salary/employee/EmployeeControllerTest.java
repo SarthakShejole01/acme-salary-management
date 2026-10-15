@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.acme.salary.currency.Money;
 import java.math.BigDecimal;
@@ -113,6 +114,54 @@ class EmployeeControllerTest {
 				.bodyJson().isLenientlyEqualTo("""
 						{ "status": 404, "title": "Not Found", "detail": "Employee 99 does not exist" }
 						""");
+	}
+
+	@Test
+	void rejects_invalid_fields_with_400_listing_each_field() {
+		String invalid = """
+				{
+				  "employeeCode": "EMP-00001",
+				  "fullName": " ",
+				  "email": "not-an-email",
+				  "jobTitle": "Software Engineer",
+				  "department": "Engineering",
+				  "salary": 1000.123,
+				  "employmentType": "FULL_TIME",
+				  "hireDate": "2022-04-01"
+				}
+				""";
+
+		assertThat(this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON).content(invalid))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+				.bodyJson()
+				.extractingPath("$.errors[*].field")
+				.asArray()
+				.containsExactlyInAnyOrder("fullName", "email", "country", "salary");
+		verifyNoInteractions(this.service);
+	}
+
+	@Test
+	void rejects_non_positive_salary_with_400() {
+		String zeroSalary = VALID_REQUEST.replace("2400000.00", "0");
+
+		assertThat(this.mvc.put().uri("/api/employees/42").contentType(MediaType.APPLICATION_JSON).content(zeroSalary))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.bodyJson()
+				.extractingPath("$.errors[*].field")
+				.asArray()
+				.containsExactly("salary");
+		verifyNoInteractions(this.service);
+	}
+
+	@Test
+	void rejects_unknown_country_code_with_400() {
+		String unknownCountry = VALID_REQUEST.replace("\"IN\"", "\"XX\"");
+
+		assertThat(this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON).content(unknownCountry))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+		verifyNoInteractions(this.service);
 	}
 
 	private static EmployeeResponse employee(Long id) {
