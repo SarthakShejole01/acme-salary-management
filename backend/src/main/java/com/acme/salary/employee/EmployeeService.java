@@ -3,10 +3,8 @@ package com.acme.salary.employee;
 import com.acme.salary.common.PageResponse;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class EmployeeService {
-
-	private static final Set<String> SORTABLE_PROPERTIES = Set.of("employeeCode", "fullName", "email", "jobTitle",
-			"department", "country", "salary", "employmentType", "hireDate");
-
-	private static final Sort DEFAULT_SORT = Sort.by("fullName");
 
 	private final EmployeeRepository repository;
 
@@ -34,7 +27,8 @@ public class EmployeeService {
 
 	@Transactional(readOnly = true)
 	public PageResponse<EmployeeResponse> search(EmployeeSearchCriteria criteria, Pageable pageable) {
-		Pageable page = withSupportedSort(pageable);
+		Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+				EmployeeSort.supported(pageable.getSort()));
 		return PageResponse
 			.from(this.repository.findAll(EmployeeSpecifications.matching(criteria), page).map(EmployeeResponse::from));
 	}
@@ -75,17 +69,6 @@ public class EmployeeService {
 
 	public void delete(Long id) {
 		this.repository.delete(findExisting(id));
-	}
-
-	/** Defaults to name order and always adds id as a tie-breaker, so paging is stable. */
-	private static Pageable withSupportedSort(Pageable pageable) {
-		for (Sort.Order order : pageable.getSort()) {
-			if (!SORTABLE_PROPERTIES.contains(order.getProperty())) {
-				throw new UnsupportedSortException(order.getProperty());
-			}
-		}
-		Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : DEFAULT_SORT;
-		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort.and(Sort.by("id")));
 	}
 
 	private Employee findExisting(Long id) {
