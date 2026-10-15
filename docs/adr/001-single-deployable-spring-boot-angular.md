@@ -8,7 +8,7 @@ The brief requires an end-to-end, deployed application with a Java backend and a
 
 ## Decision
 
-Build the Angular app at image-build time and serve its static files from Spring Boot. Ship one Docker image containing both. Backend uses Spring Boot 3 on Java 21 with Gradle (Kotlin DSL).
+Build the Angular app at image-build time and serve its static files from Spring Boot. Ship one Docker image containing both. Backend uses Spring Boot 3 on Java 21 with Gradle (Kotlin DSL). *(Amended by [ADR 006](006-spring-boot-4.md): Spring Boot 4.)*
 
 Spring Boot over Micronaut: both fit the role; Spring has the larger ecosystem (Spring Data, Testcontainers support, springdoc) and is faster to deliver with. Micronaut's faster startup does not matter at this scale.
 

@@ -4,7 +4,7 @@ Planning notes for building ACME Salary Management. Written before coding; updat
 
 ## Stack
 
-Java 21 · Spring Boot 3 · Gradle (Kotlin DSL) · Spring Data JPA/Hibernate · Flyway · PostgreSQL · Angular (standalone, signals) · PrimeNG · JUnit 5/AssertJ/Mockito/Testcontainers · GitHub Actions · Docker (single image) · Render + Neon Postgres.
+Java 21 · Spring Boot 4 · Gradle (Kotlin DSL) · Spring Data JPA/Hibernate · Flyway · PostgreSQL · Angular (standalone, signals) · PrimeNG · JUnit 5/AssertJ/Mockito/Testcontainers · GitHub Actions · Docker (single image) · Render + Neon Postgres.
 
 ## Working method
 
@@ -23,7 +23,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 3. `docs/architecture.md` + ADRs 001–005
 4. `CLAUDE.md` + `docs/ai-usage.md` + this plan
 
-### Step 2 — Scaffold & CI ☐
+### Step 2 — Scaffold & CI ◐
 5. Spring Boot backend in `backend/` (Web, Data JPA, Validation, Flyway, PostgreSQL, Actuator, Testcontainers). Base package `com.acme.salary`. Context-loads test passes.
 6. Angular frontend in `frontend/` (standalone, routing, SCSS, PrimeNG). Dev proxy `/api` → `localhost:8080`.
 7. `docker-compose.yml` with PostgreSQL 16 for local dev; `application.yml` reads DB settings from env vars with local defaults.
@@ -62,4 +62,6 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 
 ## Open questions / decisions log
 
-- _Add decisions here as they come up, with date and reasoning._
+- **2026-10-15 — Spring Boot 4.1 instead of 3.** Boot 3.x is out of open-source support and no longer on Spring Initializr. See [ADR 006](adr/006-spring-boot-4.md).
+- **2026-10-15 — Branching.** Each push gets its own branch cut from `dev` and a PR into `dev`.
+- **2026-10-15 — Tests pin `postgres:16-alpine`.** Not `latest`, so test runs are reproducible and match the local Compose database (item 7).
