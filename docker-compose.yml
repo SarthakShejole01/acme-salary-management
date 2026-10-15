@@ -31,6 +31,9 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-acme_salary}
       DB_USERNAME: ${DB_USERNAME:-acme}
       DB_PASSWORD: ${DB_PASSWORD:-acme}
+      # Optional login; empty means open (see .env.example).
+      APP_SECURITY_USERNAME: ${APP_SECURITY_USERNAME:-}
+      APP_SECURITY_PASSWORD: ${APP_SECURITY_PASSWORD:-}
     ports:
       - "8080:8080"
 
