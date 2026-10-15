@@ -48,7 +48,8 @@ record HistogramBins(BigDecimal start, BigDecimal width, int count) {
 			.filter((candidate) -> candidate.compareTo(fraction) >= 0)
 			.findFirst()
 			.orElseThrow();
-		return step.multiply(magnitude).max(SMALLEST_WIDTH);
+		// 2.5 x 10^-2 would be 0.025: round up to whole cents so every edge is a valid Money amount.
+		return step.multiply(magnitude).setScale(2, RoundingMode.CEILING).max(SMALLEST_WIDTH);
 	}
 
 }
