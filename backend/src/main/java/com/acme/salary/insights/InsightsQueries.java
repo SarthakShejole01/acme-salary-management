@@ -10,19 +10,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Read-only salary aggregations, computed in PostgreSQL. Every query groups by currency as well as country,
- * so amounts in different currencies are never combined.
+ * Read-only salary aggregations, computed in PostgreSQL. Every query groups by currency as well as its other
+ * keys, so amounts in different currencies are never combined.
  */
 @Repository
 class InsightsQueries {
 
 	/**
-	 * The median is exact {@code numeric}: the mean of the lower and upper middle values, found with
-	 * {@code percentile_disc} in ascending and descending order ({@code percentile_cont} would go through
-	 * {@code double precision}). Average and median are rounded half-up to cents.
+	 * Statistics shared by all groupings. The median is exact {@code numeric}: the mean of the lower and upper
+	 * middle values, found with {@code percentile_disc} in ascending and descending order ({@code percentile_cont}
+	 * would go through {@code double precision}). Average and median are rounded half-up to cents.
 	 */
-	private static final String COUNTRY_INSIGHTS = """
-			select country_code,
+	private static final String SALARY_STATISTICS = """
 			       currency,
 			       count(*)                                                        as headcount,
 			       min(salary)                                                     as min_salary,
@@ -30,8 +29,18 @@ class InsightsQueries {
 			       round(avg(salary), 2)                                           as avg_salary,
 			       round((percentile_disc(0.5) within group (order by salary)
 			            + percentile_disc(0.5) within group (order by salary desc)) / 2, 2) as median_salary
+			""";
+
+	private static final String COUNTRY_INSIGHTS = "select country_code," + SALARY_STATISTICS + """
 			from employee
 			group by country_code, currency
+			""";
+
+	private static final String JOB_TITLE_INSIGHTS = "select job_title," + SALARY_STATISTICS + """
+			from employee
+			where country_code = ?
+			group by job_title, currency
+			order by job_title
 			""";
 
 	private final JdbcTemplate jdbc;
@@ -41,16 +50,24 @@ class InsightsQueries {
 	}
 
 	List<CountryInsight> countryInsights() {
-		return this.jdbc.query(COUNTRY_INSIGHTS, InsightsQueries::countryInsight);
+		return this.jdbc.query(COUNTRY_INSIGHTS, (row, rowNumber) -> {
+			Country country = Country.valueOf(row.getString("country_code"));
+			return new CountryInsight(country.name(), country.displayName(), row.getLong("headcount"),
+					money(row, "min_salary"), money(row, "max_salary"), money(row, "avg_salary"),
+					money(row, "median_salary"));
+		});
 	}
 
-	private static CountryInsight countryInsight(ResultSet row, int rowNumber) throws SQLException {
-		Country country = Country.valueOf(row.getString("country_code"));
-		Currency currency = Currency.getInstance(row.getString("currency"));
-		return new CountryInsight(country.name(), country.displayName(), row.getLong("headcount"),
-				new Money(row.getBigDecimal("min_salary"), currency), new Money(row.getBigDecimal("max_salary"), currency),
-				new Money(row.getBigDecimal("avg_salary"), currency),
-				new Money(row.getBigDecimal("median_salary"), currency));
+	List<JobTitleInsight> jobTitleInsights(Country country) {
+		return this.jdbc.query(JOB_TITLE_INSIGHTS,
+				(row, rowNumber) -> new JobTitleInsight(row.getString("job_title"), row.getLong("headcount"),
+						money(row, "min_salary"), money(row, "max_salary"), money(row, "avg_salary"),
+						money(row, "median_salary")),
+				country.name());
+	}
+
+	private static Money money(ResultSet row, String column) throws SQLException {
+		return new Money(row.getBigDecimal(column), Currency.getInstance(row.getString("currency")));
 	}
 
 }

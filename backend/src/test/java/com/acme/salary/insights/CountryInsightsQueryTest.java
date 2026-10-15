@@ -9,6 +9,7 @@ import com.acme.salary.employee.Country;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -33,7 +34,12 @@ class CountryInsightsQueryTest {
 	@Autowired
 	private JdbcTemplate jdbc;
 
-	private int sequence;
+	private EmployeeRows rows;
+
+	@BeforeEach
+	void setUp() {
+		this.rows = new EmployeeRows(this.jdbc);
+	}
 
 	@Test
 	void reports_headcount_min_and_max_per_country() {
@@ -105,16 +111,7 @@ class CountryInsightsQueryTest {
 	}
 
 	private void insert(Country country, String... salaries) {
-		for (String salary : salaries) {
-			this.sequence++;
-			this.jdbc.update("""
-					insert into employee (employee_code, full_name, email, job_title, department, country_code,
-					                      currency, salary, employment_type, hire_date)
-					values (?, 'Test Person', ?, 'Software Engineer', 'Engineering', ?, ?, ?, 'FULL_TIME',
-					        date '2024-01-01')
-					""", "T-" + this.sequence, "t" + this.sequence + "@acme.com", country.name(),
-					country.currency().getCurrencyCode(), new BigDecimal(salary));
-		}
+		this.rows.insert(country, "Software Engineer", salaries);
 	}
 
 	private static CountryInsight only(List<CountryInsight> insights) {

@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.acme.salary.currency.Money;
+import com.acme.salary.employee.Country;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
@@ -44,6 +47,28 @@ class InsightsControllerTest {
 					  }
 					]
 					""");
+	}
+
+	@Test
+	void returns_job_title_insights_for_one_country() {
+		Currency inr = Currency.getInstance("INR");
+		Money amount = new Money(new BigDecimal("1750000"), inr);
+		given(this.service.jobTitleInsights(Country.IN))
+			.willReturn(List.of(new JobTitleInsight("Software Engineer", 4, amount, amount, amount, amount)));
+
+		assertThat(this.mvc.get().uri("/api/insights/countries/IN/job-titles"))
+			.hasStatusOk()
+			.bodyJson().isLenientlyEqualTo("""
+					[ { "jobTitle": "Software Engineer", "headcount": 4,
+					    "median": { "amount": 1750000.00, "currency": "INR" } } ]
+					""");
+	}
+
+	@Test
+	void rejects_an_unknown_country_code_with_400() {
+		assertThat(this.mvc.get().uri("/api/insights/countries/XX/job-titles"))
+			.hasStatus(HttpStatus.BAD_REQUEST)
+			.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
 	}
 
 }
