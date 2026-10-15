@@ -3,6 +3,7 @@ package com.acme.salary.insights;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
+import com.acme.salary.common.SecurityConfiguration;
 import com.acme.salary.currency.Money;
 import com.acme.salary.employee.Country;
 import java.math.BigDecimal;
@@ -12,12 +13,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(InsightsController.class)
+@Import(SecurityConfiguration.class)
 class InsightsControllerTest {
 
 	@Autowired

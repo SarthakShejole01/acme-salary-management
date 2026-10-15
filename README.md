@@ -63,6 +63,10 @@ cd backend && ./gradlew bootRun --args='--spring.profiles.active=seed --reset'  
 
 Defaults work out of the box. To override database settings, copy `.env.example` to `.env` (git-ignored) or set the `DB_*` environment variables.
 
+**Login.** Locally the app is open. Setting `APP_SECURITY_USERNAME` and `APP_SECURITY_PASSWORD` puts a shared HTTP basic-auth login in front of everything except `/actuator/health`; the hosted instance (profile `prod`) refuses to start without them. See [ADR 005](docs/adr/005-no-authentication-in-v1.md).
+
+**Deploy** (Render + Neon, free plans): follow [docs/deployment.md](docs/deployment.md); [`render.yaml`](render.yaml) is the blueprint.
+
 **Tests:** `cd backend && ./gradlew test` (needs Docker running — Testcontainers starts its own PostgreSQL) · `cd frontend && npm test -- --watch=false`
 
 ## Documentation
@@ -71,6 +75,7 @@ Defaults work out of the box. To override database settings, copy `.env.example`
 - [Architecture](docs/architecture.md)
 - [Architecture decision records](docs/adr/)
 - [Performance notes](docs/performance.md)
+- [Deployment (Render + Neon)](docs/deployment.md)
 - [How AI tools were used](docs/ai-usage.md)
 
 ## Live demo & video
