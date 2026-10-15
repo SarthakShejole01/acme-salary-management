@@ -112,22 +112,45 @@ export class EmployeesPage {
 
   protected readonly result = signal<Page<Employee> | null>(null);
 
-  /** Reloaded after a save, as a new department or job title may now exist. */
-  private readonly refreshReferenceData$ = new Subject<void>();
+  /** Loaded at start, again after a save (a new department or job title may now exist) and by Retry. */
+  private readonly loadReferenceData$ = new Subject<void>();
 
-  protected readonly referenceData = toSignal(
-    this.refreshReferenceData$.pipe(
-      startWith(undefined),
-      switchMap(() => this.api.referenceData().pipe(catchError(() => of(NO_REFERENCE_DATA)))),
-    ),
-    { initialValue: NO_REFERENCE_DATA },
-  );
+  protected readonly referenceData = signal<ReferenceData>(NO_REFERENCE_DATA);
+
+  /** Add and edit need the options, so they stay disabled until they have loaded. */
+  protected readonly referenceStatus = signal<'loading' | 'loaded' | 'error'>('loading');
 
   protected readonly exportUrl = computed(() => this.api.exportUrl(this.query()));
 
   private readonly retry$ = new Subject<void>();
 
   constructor() {
+    this.loadReferenceData$
+      .pipe(
+        startWith(undefined),
+        tap(() => {
+          if (this.referenceStatus() !== 'loaded') {
+            this.referenceStatus.set('loading');
+          }
+        }),
+        switchMap(() =>
+          this.api.referenceData().pipe(
+            map((data): ReferenceData | null => data),
+            catchError(() => of(null)),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((data) => {
+        if (data) {
+          this.referenceData.set(data);
+          this.referenceStatus.set('loaded');
+        } else if (this.referenceStatus() !== 'loaded') {
+          // A failed refresh keeps the options already known; only a failed first load is an error.
+          this.referenceStatus.set('error');
+        }
+      });
+
     this.searchControl.valueChanges
       .pipe(
         debounceTime(300),
@@ -181,6 +204,10 @@ export class EmployeesPage {
     this.retry$.next();
   }
 
+  protected retryReferenceData(): void {
+    this.loadReferenceData$.next();
+  }
+
   protected add(): void {
     this.openForm(undefined);
   }
@@ -224,7 +251,7 @@ export class EmployeesPage {
       .subscribe((saved) => {
         this.snackBar.open(`Saved ${saved.fullName}`, undefined, { duration: 4000 });
         this.retry$.next();
-        this.refreshReferenceData$.next();
+        this.loadReferenceData$.next();
       });
   }
 

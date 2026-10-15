@@ -261,4 +261,15 @@ describe('InsightsPage', () => {
 
     expect(text('[data-testid="job-titles"]')).toContain('Software Engineer');
   });
+
+  it('names_the_tables_for_screen_readers', async () => {
+    await render();
+    await click('[data-testid="select-IN"]');
+
+    const names = Array.from(element.querySelectorAll('table')).map((table) =>
+      table.getAttribute('aria-label'),
+    );
+
+    expect(names).toEqual(['Pay by country', 'Pay by job title in India']);
+  });
 });

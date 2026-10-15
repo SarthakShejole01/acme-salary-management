@@ -48,7 +48,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 20. `GET /api/employees/export.csv` — filtered CSV export (streamed).
 Each query tested on a small known dataset (e.g. 5 salaries → known median).
 
-### Step 6 — UI ◐
+### Step 6 — UI ☑
 21. Employees page: Material table + paginator + sort (server-side), debounced search, country/department/title filters, sorting.
 22. Add/edit dialog (reactive form, validation messages mirroring backend rules, server error display); delete with confirmation; CSV export button.
 23. Insights dashboard: country comparison table, job-title drill-down, distribution chart, summary cards ("≈ USD, rates as of …").
@@ -80,4 +80,5 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — Employees page state as an RxJS query stream.** The query (page, size, sort, search, filters) is a `BehaviorSubject` exposed to the template as a signal; every change flows through one `switchMap` to `EmployeeApi`, cancelling stale requests. Signals hold view state (loading / loaded / error, result). Any change but paging returns to page 1.
 - **2026-10-15 — Distribution chart as plain SVG, no chart library.** One bar chart does not justify a dependency (ADR 007 left this open for item 23). `DistributionChart` draws bars scaled to the largest bucket, with a `<title>` per bar and an `aria-label` summary for screen readers. Checked on all eight countries in the browser: the plot is inset so outer labels are not clipped, and axis labels are thinned (every other one) when the widest would not fit its bucket (Singapore's "SGD 20,000").
 - **2026-10-15 — Insights page loads each section independently.** Summary, country table and the selected country's details (job titles + distribution, fetched together) each have their own loading / error-with-Retry state, so one failing endpoint does not blank the page. The USD cards are labelled "≈" with the rate date; the country table stays in local currency with a note saying so.
+- **2026-10-15 — UI states audit (item 24).** Every screen already had loading / empty / error states; the audit looked for what was *missing*. Found and fixed: (1) a failed `/api/reference-data` left the Add dialog with no countries and no explanation — reference data now has its own state, Add/Edit are disabled until it loads, and a warning offers Retry (a failed *refresh* after a save keeps the options already known); (2) tables had no accessible names; (3) at 400 px wide the insights page stretched to ~690 px and the toolbar and employees header overflowed — wide tables now scroll inside their own box and the toolbar/header wrap. Desktop remains the primary target (requirements §4); there is no mobile-specific design.
 

@@ -1,10 +1,12 @@
 .page-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 16px;
+  gap: 8px 16px;
+  margin-bottom: 16px;
 
   h1 {
-    margin: 0 0 16px;
+    margin: 0;
     font: var(--mat-sys-headline-small);
   }
 
@@ -65,4 +67,16 @@
   &.error {
     color: var(--mat-sys-error);
   }
+}
+
+.reference-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
