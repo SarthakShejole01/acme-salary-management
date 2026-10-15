@@ -1,0 +1,51 @@
+.page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+
+  h1 {
+    margin: 0 0 16px;
+    font: var(--mat-sys-headline-small);
+  }
+
+  .count {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  mat-form-field {
+    width: 200px;
+  }
+
+  .search {
+    width: 300px;
+  }
+}
+
+.progress-slot {
+  height: 4px;
+}
+
+.table-container {
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+}
+
+.numeric {
+  text-align: right;
+}
+
+.message {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.error {
+    color: var(--mat-sys-error);
+  }
+}

@@ -1,0 +1,138 @@
+<header class="page-header">
+  <h1>Employees</h1>
+  @if (result(); as page) {
+    <span class="count">{{ page.totalElements }} employees</span>
+  }
+</header>
+
+<section class="filters" aria-label="Filters">
+  <mat-form-field appearance="outline" class="search">
+    <mat-label>Search name, code or email</mat-label>
+    <input
+      matInput
+      data-testid="search"
+      [value]="searchText()"
+      (input)="onSearchInput($any($event.target).value)"
+    />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Country</mat-label>
+    <mat-select
+      data-testid="country-filter"
+      [value]="query().country"
+      (selectionChange)="filterBy('country', $event.value)"
+    >
+      <mat-option value="">All countries</mat-option>
+      @for (country of referenceData().countries; track country.code) {
+        <mat-option [value]="country.code">{{ country.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Department</mat-label>
+    <mat-select
+      data-testid="department-filter"
+      [value]="query().department"
+      (selectionChange)="filterBy('department', $event.value)"
+    >
+      <mat-option value="">All departments</mat-option>
+      @for (department of referenceData().departments; track department) {
+        <mat-option [value]="department">{{ department }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Job title</mat-label>
+    <mat-select
+      data-testid="job-title-filter"
+      [value]="query().jobTitle"
+      (selectionChange)="filterBy('jobTitle', $event.value)"
+    >
+      <mat-option value="">All job titles</mat-option>
+      @for (jobTitle of referenceData().jobTitles; track jobTitle) {
+        <mat-option [value]="jobTitle">{{ jobTitle }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</section>
+
+<div class="progress-slot">
+  @if (status() === 'loading') {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading employees" />
+  }
+</div>
+
+@if (status() === 'error') {
+  <div class="message error" role="alert">
+    <p>Could not load employees. Check your connection and try again.</p>
+    <button mat-stroked-button data-testid="retry" (click)="retry()">Retry</button>
+  </div>
+} @else if (isEmpty()) {
+  <div class="message">
+    <p>No employees match these filters.</p>
+    <button mat-stroked-button data-testid="clear-filters" (click)="clearFilters()">Clear filters</button>
+  </div>
+} @else {
+  <div class="table-container">
+    <table
+      mat-table
+      matSort
+      [dataSource]="result()?.content ?? []"
+      [matSortActive]="query().sort.active"
+      [matSortDirection]="query().sort.direction"
+      (matSortChange)="onSort($event)"
+    >
+      <ng-container matColumnDef="employeeCode">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Code</th>
+        <td mat-cell *matCellDef="let e">{{ e.employeeCode }}</td>
+      </ng-container>
+      <ng-container matColumnDef="fullName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let e">{{ e.fullName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let e">{{ e.email }}</td>
+      </ng-container>
+      <ng-container matColumnDef="jobTitle">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Job title</th>
+        <td mat-cell *matCellDef="let e">{{ e.jobTitle }}</td>
+      </ng-container>
+      <ng-container matColumnDef="department">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Department</th>
+        <td mat-cell *matCellDef="let e">{{ e.department }}</td>
+      </ng-container>
+      <ng-container matColumnDef="country">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
+        <td mat-cell *matCellDef="let e">{{ e.country }}</td>
+      </ng-container>
+      <ng-container matColumnDef="salary">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before" class="numeric">Salary</th>
+        <td mat-cell *matCellDef="let e" class="numeric">{{ e.salary | money }}</td>
+      </ng-container>
+      <ng-container matColumnDef="employmentType">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+        <td mat-cell *matCellDef="let e">{{ employmentTypeLabel(e.employmentType) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="hireDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Hired</th>
+        <td mat-cell *matCellDef="let e">{{ e.hireDate | date: 'mediumDate' }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="result()?.totalElements ?? 0"
+    [pageIndex]="query().page"
+    [pageSize]="query().size"
+    [pageSizeOptions]="pageSizes"
+    (page)="onPage($event)"
+    aria-label="Select page of employees"
+  />
+}
