@@ -10,17 +10,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
-/** The Angular app is served from the same origin; routes it owns must survive a browser refresh. */
-@WebMvcTest
+/**
+ * The Angular app is served from the same origin; routes it owns must survive a browser refresh. Only static
+ * resources and the error handler matter here, so no controller is loaded.
+ */
+@WebMvcTest(controllers = SpaFallbackTest.NoControllers.class)
 @Import(SpaWebConfiguration.class)
 class SpaFallbackTest {
+
+	/** Not a controller: naming it makes @WebMvcTest load none (an empty list would mean "all of them"). */
+	static class NoControllers {
+
+	}
 
 	@Autowired
 	private MockMvcTester mvc;
 
+	/** "/" itself is a forward to index.html by Spring Boot's welcome page, which MockMvc does not follow. */
 	@Test
-	void serves_the_app_at_the_root() {
-		assertThat(this.mvc.get().uri("/")).hasStatusOk().bodyText().contains("ACME test app");
+	void serves_index_html_itself() {
+		assertThat(this.mvc.get().uri("/index.html")).hasStatusOk().bodyText().contains("ACME test app");
 	}
 
 	@Test
