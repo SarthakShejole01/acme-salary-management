@@ -32,4 +32,10 @@ class InsightsController {
 		return this.service.distribution(country);
 	}
 
+	/** Organisation-wide totals in USD at fixed, dated rates; approximate by design. */
+	@GetMapping("/summary")
+	OrgSummary summary() {
+		return this.service.summary();
+	}
+
 }

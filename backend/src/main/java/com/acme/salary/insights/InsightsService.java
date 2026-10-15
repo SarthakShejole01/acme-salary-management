@@ -1,7 +1,11 @@
 package com.acme.salary.insights;
 
+import com.acme.salary.currency.ExchangeRateRepository;
+import com.acme.salary.currency.ExchangeRates;
 import com.acme.salary.currency.Money;
 import com.acme.salary.employee.Country;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +23,11 @@ public class InsightsService {
 
 	private final InsightsQueries queries;
 
-	public InsightsService(InsightsQueries queries) {
+	private final ExchangeRateRepository exchangeRates;
+
+	public InsightsService(InsightsQueries queries, ExchangeRateRepository exchangeRates) {
 		this.queries = queries;
+		this.exchangeRates = exchangeRates;
 	}
 
 	public List<CountryInsight> countryInsights() {
@@ -47,6 +54,24 @@ public class InsightsService {
 					new Money(bins.upperEdge(bucket), country.currency()), counts.getOrDefault(bucket, 0L)))
 			.toList();
 		return new SalaryDistribution(country.name(), currency, buckets);
+	}
+
+	/**
+	 * Converts each currency's salary total to USD (exactly), adds them, and rounds once to cents. Salaries in
+	 * different currencies are never added before conversion.
+	 */
+	public OrgSummary summary() {
+		ExchangeRates rates = this.exchangeRates.currentRates();
+		long headcount = 0;
+		BigDecimal totalUsd = BigDecimal.ZERO;
+		for (CurrencyTotal total : this.queries.salaryTotalsByCurrency()) {
+			headcount += total.headcount();
+			totalUsd = totalUsd.add(rates.usdValue(total.total()));
+		}
+		Money totalCost = new Money(totalUsd.setScale(2, RoundingMode.HALF_UP), ExchangeRates.USD);
+		Money average = (headcount == 0) ? null
+				: new Money(totalUsd.divide(BigDecimal.valueOf(headcount), 2, RoundingMode.HALF_UP), ExchangeRates.USD);
+		return new OrgSummary(headcount, totalCost, average, true, rates.asOf());
 	}
 
 }
