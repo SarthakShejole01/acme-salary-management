@@ -101,10 +101,10 @@ employee                                   -- Flyway V1
   hire_date        date          NOT NULL
   created_at, updated_at  timestamptz NOT NULL DEFAULT now()  -- set from the injected Clock by JPA auditing
 
-exchange_rate                              -- planned (Flyway V2)
+exchange_rate                              -- Flyway V2
   currency         varchar(3) PK
-  usd_rate         numeric(18,8) NOT NULL   -- 1 unit of currency = usd_rate USD
-  effective_date   date NOT NULL
+  usd_rate         numeric(18,8) NOT NULL  CHECK (usd_rate > 0)  -- 1 unit of currency = usd_rate USD
+  effective_date   date          NOT NULL  -- ECB euro reference rates of 2026-10-14, converted to USD
 
 Indexes: (country_code, job_title) -- also serves country-only filters, (department)
 ```
