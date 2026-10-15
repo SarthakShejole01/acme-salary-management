@@ -5,9 +5,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import com.acme.salary.currency.ExchangeRateRepository;
+import com.acme.salary.currency.ExchangeRates;
 import com.acme.salary.currency.Money;
 import com.acme.salary.employee.Country;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,9 @@ class InsightsServiceTest {
 
 	@Mock
 	private InsightsQueries queries;
+
+	@Mock
+	private ExchangeRateRepository exchangeRates;
 
 	@InjectMocks
 	private InsightsService service;
@@ -79,6 +85,53 @@ class InsightsServiceTest {
 				assertThat(bucket.headcount()).isEqualTo(4);
 				assertThat(bucket.from()).isEqualTo(gbp("50000"));
 			});
+	}
+
+	@Test
+	void totals_the_organisation_in_usd_converting_each_currency_first() {
+		given(this.exchangeRates.currentRates()).willReturn(rates());
+		given(this.queries.salaryTotalsByCurrency()).willReturn(List.of(
+				new CurrencyTotal(2, money("4000000", "INR")), new CurrencyTotal(1, money("100000", "USD")),
+				new CurrencyTotal(1, money("50000", "GBP"))));
+
+		OrgSummary summary = this.service.summary();
+
+		// 4,000,000 x 0.01050894 + 100,000 + 50,000 x 1.32665758 = 208,368.639 USD
+		assertThat(summary.headcount()).isEqualTo(4);
+		assertThat(summary.totalAnnualCost()).isEqualTo(money("208368.64", "USD"));
+		assertThat(summary.averageSalary()).isEqualTo(money("52092.16", "USD"));
+	}
+
+	@Test
+	void labels_the_summary_approximate_with_the_rate_date() {
+		given(this.exchangeRates.currentRates()).willReturn(rates());
+		given(this.queries.salaryTotalsByCurrency()).willReturn(List.of(new CurrencyTotal(1, money("100000", "USD"))));
+
+		OrgSummary summary = this.service.summary();
+
+		assertThat(summary.approximate()).isTrue();
+		assertThat(summary.ratesAsOf()).isEqualTo(LocalDate.of(2026, 10, 14));
+	}
+
+	@Test
+	void has_zero_cost_and_no_average_without_employees() {
+		given(this.exchangeRates.currentRates()).willReturn(rates());
+		given(this.queries.salaryTotalsByCurrency()).willReturn(List.of());
+
+		OrgSummary summary = this.service.summary();
+
+		assertThat(summary.headcount()).isZero();
+		assertThat(summary.totalAnnualCost()).isEqualTo(money("0", "USD"));
+		assertThat(summary.averageSalary()).isNull();
+	}
+
+	private static ExchangeRates rates() {
+		return new ExchangeRates(Map.of(Currency.getInstance("USD"), BigDecimal.ONE, Currency.getInstance("INR"),
+				new BigDecimal("0.01050894"), GBP, new BigDecimal("1.32665758")), LocalDate.of(2026, 10, 14));
+	}
+
+	private static Money money(String amount, String currency) {
+		return new Money(new BigDecimal(amount), Currency.getInstance(currency));
 	}
 
 	private static Money gbp(String amount) {

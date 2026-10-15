@@ -60,6 +60,12 @@ class InsightsQueries {
 			group by bucket
 			""";
 
+	private static final String SALARY_TOTALS = """
+			select currency, count(*) as headcount, sum(salary) as total_salary
+			from employee
+			group by currency
+			""";
+
 	private final JdbcTemplate jdbc;
 
 	InsightsQueries(JdbcTemplate jdbc) {
@@ -102,6 +108,12 @@ class InsightsQueries {
 				},
 				bins.start(), bins.end(), bins.count(), country.name());
 		return counts;
+	}
+
+	/** One row per currency; amounts in different currencies are kept apart for the caller to convert. */
+	List<CurrencyTotal> salaryTotalsByCurrency() {
+		return this.jdbc.query(SALARY_TOTALS,
+				(row, rowNumber) -> new CurrencyTotal(row.getLong("headcount"), money(row, "total_salary")));
 	}
 
 	private static Money money(ResultSet row, String column) throws SQLException {
