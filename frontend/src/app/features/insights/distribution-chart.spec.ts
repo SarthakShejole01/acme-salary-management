@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DistributionChart } from './distribution-chart';
-import { DistributionBucket } from '../../core/models';
+import { DistributionBucket, Money } from '../../core/models';
 
 function bucket(from: number, to: number, headcount: number): DistributionBucket {
   return { from: { amount: from, currency: 'GBP' }, to: { amount: to, currency: 'GBP' }, headcount };
@@ -50,6 +50,29 @@ describe('DistributionChart', () => {
     const labels = Array.from(element.querySelectorAll('text.edge')).map((text) => text.textContent?.trim());
 
     expect(labels).toEqual(['£10,000', '£20,000', '£30,000', '£40,000']);
+  });
+
+  it('keeps_the_outer_axis_labels_inside_the_drawing', async () => {
+    const element = await render(buckets);
+    const labelXs = Array.from(element.querySelectorAll('text.edge')).map((text) => Number(text.getAttribute('x')));
+
+    // A label centred on the first or last edge is about 40 units wide, so those edges need room each side.
+    expect(labelXs[0]).toBeGreaterThanOrEqual(36);
+    expect(labelXs[labelXs.length - 1]).toBeLessThanOrEqual(640 - 36);
+  });
+
+  it('shows_every_other_edge_label_when_they_would_overlap', async () => {
+    const sgd = (amount: number): Money => ({ amount, currency: 'SGD' });
+    const crowded = Array.from({ length: 10 }, (_, i) => ({
+      from: sgd(20000 + i * 20000),
+      to: sgd(40000 + i * 20000),
+      headcount: i + 1,
+    }));
+
+    const element = await render(crowded);
+    const labels = Array.from(element.querySelectorAll('text.edge')).map((text) => text.textContent?.trim());
+
+    expect(labels).toEqual(['SGD 20,000', 'SGD 60,000', 'SGD 100,000', 'SGD 140,000', 'SGD 180,000', 'SGD 220,000']);
   });
 
   it('describes_the_chart_for_screen_readers', async () => {
