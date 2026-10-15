@@ -1,5 +1,6 @@
 package com.acme.salary.employee;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ class EmployeeController {
 	}
 
 	@PostMapping
-	ResponseEntity<EmployeeResponse> create(@RequestBody EmployeeRequest request) {
+	ResponseEntity<EmployeeResponse> create(@Valid @RequestBody EmployeeRequest request) {
 		EmployeeResponse created = this.service.create(request);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 			.path("/{id}")
@@ -40,7 +41,7 @@ class EmployeeController {
 	}
 
 	@PutMapping("/{id}")
-	EmployeeResponse update(@PathVariable Long id, @RequestBody EmployeeRequest request) {
+	EmployeeResponse update(@PathVariable Long id, @Valid @RequestBody EmployeeRequest request) {
 		return this.service.update(id, request);
 	}
 
