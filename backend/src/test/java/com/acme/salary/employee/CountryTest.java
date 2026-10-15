@@ -33,4 +33,14 @@ class CountryTest {
 				.containsExactlyInAnyOrder("US", "GB", "IN", "DE", "FR", "CA", "AU", "SG");
 	}
 
+	@ParameterizedTest(name = "{0} is called {1}")
+	@CsvSource({
+			"GB, United Kingdom",
+			"IN, India",
+			"US, United States",
+	})
+	void has_an_english_display_name(Country country, String name) {
+		assertThat(country.displayName()).isEqualTo(name);
+	}
+
 }
