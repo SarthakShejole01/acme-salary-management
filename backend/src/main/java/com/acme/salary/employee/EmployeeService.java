@@ -22,6 +22,11 @@ public class EmployeeService {
 		this.clock = clock;
 	}
 
+	@Transactional(readOnly = true)
+	public EmployeeResponse get(Long id) {
+		return EmployeeResponse.from(findExisting(id));
+	}
+
 	public EmployeeResponse create(EmployeeRequest request) {
 		validateFields(request);
 		if (this.repository.existsByEmployeeCode(request.employeeCode())) {
@@ -37,7 +42,7 @@ public class EmployeeService {
 	}
 
 	public EmployeeResponse update(Long id, EmployeeRequest request) {
-		Employee employee = this.repository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
+		Employee employee = findExisting(id);
 		validateFields(request);
 		if (this.repository.existsByEmployeeCodeAndIdNot(request.employeeCode(), id)) {
 			throw duplicateCode(request);
@@ -49,6 +54,14 @@ public class EmployeeService {
 				request.department(), request.country(), request.salary(), request.employmentType(),
 				request.hireDate());
 		return EmployeeResponse.from(employee);
+	}
+
+	public void delete(Long id) {
+		this.repository.delete(findExisting(id));
+	}
+
+	private Employee findExisting(Long id) {
+		return this.repository.findById(id).orElseThrow(() -> new EmployeeNotFoundException(id));
 	}
 
 	private void validateFields(EmployeeRequest request) {
