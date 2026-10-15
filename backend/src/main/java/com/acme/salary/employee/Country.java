@@ -1,6 +1,7 @@
 package com.acme.salary.employee;
 
 import java.util.Currency;
+import java.util.Locale;
 
 /**
  * Countries ACME employs people in, by ISO 3166-1 alpha-2 code. Salary currency is derived from the
@@ -25,6 +26,11 @@ public enum Country {
 
 	public Currency currency() {
 		return this.currency;
+	}
+
+	/** English name, e.g. "United Kingdom" for GB. */
+	public String displayName() {
+		return Locale.of("", name()).getDisplayCountry(Locale.ENGLISH);
 	}
 
 }
