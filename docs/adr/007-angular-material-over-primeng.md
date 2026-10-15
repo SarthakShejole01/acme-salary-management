@@ -16,7 +16,7 @@ Use **Angular Material 22** (with `@angular/cdk`), MIT-licensed and released in 
 
 - Employee list: `mat-table` + `mat-paginator` + `mat-sort` driven by server-side paging, sorting and filtering.
 - Add/edit: `mat-dialog` with reactive forms and `mat-form-field` error messages.
-- Charts are not part of Material. The salary-distribution histogram (plan item 23) will use a small MIT chart library or plain SVG — decided at that item, with the dependency justified then.
+- Charts are not part of Material. The salary-distribution histogram (plan item 23) will use a small MIT chart library or plain SVG — decided at that item, with the dependency justified then. *(Decided at item 23: plain SVG, no chart library.)*
 
 ## Consequences
 
