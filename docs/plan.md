@@ -23,7 +23,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 3. `docs/architecture.md` + ADRs 001–005
 4. `CLAUDE.md` + `docs/ai-usage.md` + this plan
 
-### Step 2 — Scaffold & CI ◐
+### Step 2 — Scaffold & CI ☑
 5. Spring Boot backend in `backend/` (Web, Data JPA, Validation, Flyway, PostgreSQL, Actuator, Testcontainers). Base package `com.acme.salary`. Context-loads test passes.
 6. Angular frontend in `frontend/` (standalone, routing, SCSS, Angular Material). Dev proxy `/api` → `localhost:8080`.
 7. `docker-compose.yml` with PostgreSQL 16 for local dev; `application.yml` reads DB settings from env vars with local defaults.

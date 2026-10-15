@@ -1,5 +1,7 @@
 # ACME Salary Management
 
+[![CI](https://github.com/SarthakShejole01/acme-salary-management/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/SarthakShejole01/acme-salary-management/actions/workflows/ci.yml)
+
 Web-based salary management for ACME's HR team: maintain salary data for ~10,000 employees across countries, and answer questions about how the organisation pays people — without spreadsheets.
 
 > **Status:** in progress. This README grows with the project.
