@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Currency;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -162,6 +163,53 @@ class EmployeeControllerTest {
 				.hasStatus(HttpStatus.BAD_REQUEST)
 				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
 		verifyNoInteractions(this.service);
+	}
+
+	@Test
+	void returns_409_problem_naming_the_field_when_a_value_is_already_used() {
+		given(this.service.create(any(EmployeeRequest.class)))
+				.willThrow(new DuplicateEmployeeException("email", "Email priya.sharma@acme.com is already in use"));
+
+		assertThat(this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
+				.hasStatus(HttpStatus.CONFLICT)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+				.bodyJson().isLenientlyEqualTo("""
+						{
+						  "status": 409,
+						  "detail": "Email priya.sharma@acme.com is already in use",
+						  "errors": [ { "field": "email", "message": "Email priya.sharma@acme.com is already in use" } ]
+						}
+						""");
+	}
+
+	@Test
+	void returns_400_problem_naming_the_field_when_a_business_rule_is_broken() {
+		given(this.service.create(any(EmployeeRequest.class)))
+				.willThrow(new InvalidEmployeeException("hireDate", "Hire date must not be in the future"));
+
+		assertThat(this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+				.bodyJson().isLenientlyEqualTo("""
+						{
+						  "status": 400,
+						  "errors": [ { "field": "hireDate", "message": "Hire date must not be in the future" } ]
+						}
+						""");
+	}
+
+	@Test
+	void returns_409_problem_when_the_database_rejects_a_concurrent_duplicate() {
+		given(this.service.create(any(EmployeeRequest.class)))
+				.willThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
+
+		assertThat(this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
+				.hasStatus(HttpStatus.CONFLICT)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON)
+				.bodyJson()
+				.extractingPath("$.detail")
+				.asString()
+				.doesNotContain("constraint");
 	}
 
 	private static EmployeeResponse employee(Long id) {
