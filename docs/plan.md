@@ -67,3 +67,5 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — Tests pin `postgres:16-alpine`.** Not `latest`, so test runs are reproducible and match the local Compose database (item 7).
 - **2026-10-15 — Angular Material instead of PrimeNG.** PrimeNG is now commercially licensed and needs a licence key. See [ADR 007](adr/007-angular-material-over-primeng.md).
 - **2026-10-15 — Node 24.15+ required.** Angular 22 needs Node `^22.22.3 || ^24.15.0 || >=26`. Local dev uses Node 24 LTS (24.22.0); CI will pin Node 24.
+- **2026-10-15 — Employee schema details (V1).** `varchar(2)`/`varchar(3)` instead of `char(n)` (PostgreSQL discourages `char(n)`; the Java enum restricts values). Identity column instead of `bigserial`. Email unique case-insensitively. No separate `country_code` index — the `(country_code, job_title)` index covers it.
+- **2026-10-15 — No `lower(full_name)` index yet.** A b-tree index cannot serve `LIKE '%term%'` search. Measure search at 10k rows in item 13; add a `pg_trgm` GIN index in a new migration only if needed.
