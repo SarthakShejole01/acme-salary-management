@@ -3,16 +3,22 @@ package com.acme.salary.employee;
 import com.acme.salary.currency.Money;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Currency;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Employee {
 
 	@Id
@@ -41,6 +47,13 @@ public class Employee {
 	private EmploymentType employmentType;
 
 	private LocalDate hireDate;
+
+	@CreatedDate
+	@Column(updatable = false)
+	private Instant createdAt;
+
+	@LastModifiedDate
+	private Instant updatedAt;
 
 	protected Employee() {
 	}
@@ -103,6 +116,14 @@ public class Employee {
 
 	public LocalDate getHireDate() {
 		return this.hireDate;
+	}
+
+	public Instant getCreatedAt() {
+		return this.createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return this.updatedAt;
 	}
 
 }
