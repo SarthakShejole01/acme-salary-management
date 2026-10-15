@@ -26,8 +26,12 @@ class FakeEmployeeApi {
   readonly deleted: number[] = [];
   deleteResult: () => Observable<void> = () => of(undefined);
 
+  referenceResult: () => Observable<ReferenceData> = () => of(REFERENCE_DATA);
+  referenceCalls = 0;
+
   referenceData(): Observable<ReferenceData> {
-    return of(REFERENCE_DATA);
+    this.referenceCalls++;
+    return this.referenceResult();
   }
 
   delete(id: number): Observable<void> {
@@ -380,5 +384,58 @@ describe('EmployeesPage', () => {
     expect(element.querySelector('[data-testid="export"]')?.getAttribute('href')).toBe(
       '/api/employees/export.csv?country=IN',
     );
+  });
+
+  function addButton(element: HTMLElement): HTMLButtonElement {
+    return element.querySelector('[data-testid="add"]') as HTMLButtonElement;
+  }
+
+  it('warns_and_blocks_add_and_edit_when_the_form_options_cannot_be_loaded', async () => {
+    api.referenceResult = () => throwError(() => new Error('down'));
+
+    const element = await render();
+
+    expect(element.querySelector('[data-testid="reference-warning"]')?.textContent).toContain(
+      'Could not load the filter and form options',
+    );
+    expect(addButton(element).disabled).toBe(true);
+    expect((element.querySelector('tr.mat-mdc-row [data-testid="edit"]') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('loads_the_form_options_again_on_retry_and_enables_add', async () => {
+    let attempt = 0;
+    api.referenceResult = () => (++attempt === 1 ? throwError(() => new Error('down')) : of(REFERENCE_DATA));
+    const element = await render();
+
+    await click(element, '[data-testid="retry-reference-data"]');
+
+    expect(element.querySelector('[data-testid="reference-warning"]')).toBeNull();
+    expect(addButton(element).disabled).toBe(false);
+  });
+
+  it('keeps_add_disabled_without_a_warning_while_the_form_options_are_loading', async () => {
+    api.referenceResult = () => NEVER;
+
+    const element = await render();
+
+    expect(addButton(element).disabled).toBe(true);
+    expect(element.querySelector('[data-testid="reference-warning"]')).toBeNull();
+  });
+
+  it('keeps_the_known_options_when_refreshing_them_after_a_save_fails', async () => {
+    const element = await render();
+    dialog.result = PRIYA;
+    api.referenceResult = () => throwError(() => new Error('down'));
+
+    await click(element, '[data-testid="add"]');
+
+    expect(element.querySelector('[data-testid="reference-warning"]')).toBeNull();
+    expect(addButton(element).disabled).toBe(false);
+  });
+
+  it('names_the_table_for_screen_readers', async () => {
+    const element = await render();
+
+    expect(element.querySelector('table')?.getAttribute('aria-label')).toBe('Employees');
   });
 });
