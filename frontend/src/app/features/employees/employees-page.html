@@ -1,6 +1,6 @@
 <header class="page-header">
   <h1>Employees</h1>
-  @if (result(); as page) {
+  @if (status() === 'loaded' && result(); as page) {
     <span class="count">{{ page.totalElements }} employees</span>
   }
 </header>
@@ -8,12 +8,7 @@
 <section class="filters" aria-label="Filters">
   <mat-form-field appearance="outline" class="search">
     <mat-label>Search name, code or email</mat-label>
-    <input
-      matInput
-      data-testid="search"
-      [value]="searchText()"
-      (input)="onSearchInput($any($event.target).value)"
-    />
+    <input matInput data-testid="search" [formControl]="searchControl" />
   </mat-form-field>
 
   <mat-form-field appearance="outline">

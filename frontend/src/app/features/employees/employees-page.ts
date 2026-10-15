@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -15,7 +16,7 @@ import {
   catchError,
   combineLatest,
   debounceTime,
-  distinctUntilChanged,
+  filter,
   map,
   of,
   startWith,
@@ -51,6 +52,7 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   selector: 'app-employees-page',
   imports: [
     DatePipe,
+    ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
     MatPaginatorModule,
@@ -86,7 +88,7 @@ export class EmployeesPage {
 
   protected readonly query = toSignal(this.query$, { requireSync: true });
 
-  protected readonly searchText = signal('');
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
 
   protected readonly status = signal<'loading' | 'loaded' | 'error'>('loading');
 
@@ -97,16 +99,16 @@ export class EmployeesPage {
     { initialValue: NO_REFERENCE_DATA },
   );
 
-  private readonly searchInput$ = new Subject<string>();
-
   private readonly retry$ = new Subject<void>();
 
   constructor() {
-    this.searchInput$
+    this.searchControl.valueChanges
       .pipe(
         debounceTime(300),
         map((text) => text.trim()),
-        distinctUntilChanged(),
+        // Compare with the current query rather than the previous keystroke, so that retyping a search
+        // after "Clear filters" still runs it.
+        filter((search) => search !== this.query$.value.search),
         takeUntilDestroyed(),
       )
       .subscribe((search) => this.update({ search }));
@@ -132,11 +134,6 @@ export class EmployeesPage {
       });
   }
 
-  protected onSearchInput(text: string): void {
-    this.searchText.set(text);
-    this.searchInput$.next(text);
-  }
-
   protected filterBy(filter: Filter, value: string): void {
     this.update({ [filter]: value });
   }
@@ -150,7 +147,7 @@ export class EmployeesPage {
   }
 
   protected clearFilters(): void {
-    this.searchText.set('');
+    this.searchControl.setValue('', { emitEvent: false });
     this.update({ search: '', country: '', department: '', jobTitle: '' });
   }
 
