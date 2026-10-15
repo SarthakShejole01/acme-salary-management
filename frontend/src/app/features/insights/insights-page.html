@@ -1,0 +1,143 @@
+<h1>Pay insights</h1>
+
+<section class="cards" aria-label="Organisation summary">
+  @if (summary().status === 'loading') {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading summary" />
+  } @else if (summary().data; as s) {
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="label">Employees</div>
+        <div class="value" data-testid="headcount">{{ s.headcount | number }}</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="label">Total annual salary cost</div>
+        <div class="value" data-testid="total-cost">≈ {{ s.totalAnnualCost | money }}</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <mat-card-content>
+        <div class="label">Average salary</div>
+        <div class="value" data-testid="average-salary">
+          @if (s.averageSalary) {
+            ≈ {{ s.averageSalary | money }}
+          } @else {
+            —
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <p class="note" data-testid="rates-note">
+      Approximate: each salary converted to USD at fixed exchange rates as of
+      {{ s.ratesAsOf | date: 'mediumDate' }}.
+    </p>
+  } @else {
+    <div class="message error" role="alert">
+      <p>Could not load the summary.</p>
+      <button mat-stroked-button data-testid="retry-summary" (click)="retrySummary()">Retry</button>
+    </div>
+  }
+</section>
+
+<section aria-labelledby="countries-heading">
+  <h2 id="countries-heading">Countries</h2>
+  <p class="hint">
+    Amounts are in each country's own currency, so they are not converted or mixed.
+  </p>
+
+  @if (countries().status === 'loading') {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading countries" />
+  } @else if (countries().data; as rows) {
+    @if (rows.length === 0) {
+      <div class="message"><p>No employees yet. Add employees to see pay insights.</p></div>
+    } @else {
+      <table mat-table [dataSource]="rows">
+        <ng-container matColumnDef="country">
+          <th mat-header-cell *matHeaderCellDef>Country</th>
+          <td mat-cell *matCellDef="let row">
+            <button
+              mat-button
+              class="select"
+              [attr.data-testid]="'select-' + row.countryCode"
+              [attr.aria-pressed]="selected()?.countryCode === row.countryCode"
+              (click)="select(row)"
+            >
+              {{ row.countryName }}
+            </button>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="headcount">
+          <th mat-header-cell *matHeaderCellDef class="numeric">Employees</th>
+          <td mat-cell *matCellDef="let row" class="numeric">{{ row.headcount | number }}</td>
+        </ng-container>
+        @for (stat of statColumns; track stat.key) {
+          <ng-container [matColumnDef]="stat.key">
+            <th mat-header-cell *matHeaderCellDef class="numeric">{{ stat.label }}</th>
+            <td mat-cell *matCellDef="let row" class="numeric">{{ row[stat.key] | money }}</td>
+          </ng-container>
+        }
+
+        <tr mat-header-row *matHeaderRowDef="countryColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: countryColumns"
+          [class.selected]="selected()?.countryCode === row.countryCode"
+        ></tr>
+      </table>
+    }
+  } @else {
+    <div class="message error" role="alert">
+      <p>Could not load the country comparison.</p>
+      <button mat-stroked-button data-testid="retry-countries" (click)="retryCountries()">
+        Retry
+      </button>
+    </div>
+  }
+</section>
+
+@if (selected(); as country) {
+  <section class="details" data-testid="details" aria-labelledby="details-heading">
+    <h2 id="details-heading" data-testid="details-heading">{{ country.countryName }} in detail</h2>
+
+    @if (details().status === 'loading') {
+      <mat-progress-bar mode="indeterminate" aria-label="Loading details" />
+    } @else if (details().data; as d) {
+      <h3>Pay by job title ({{ d.distribution.currency }})</h3>
+      <div data-testid="job-titles">
+        <table mat-table [dataSource]="d.jobTitles">
+          <ng-container matColumnDef="jobTitle">
+            <th mat-header-cell *matHeaderCellDef>Job title</th>
+            <td mat-cell *matCellDef="let row">{{ row.jobTitle }}</td>
+          </ng-container>
+          <ng-container matColumnDef="headcount">
+            <th mat-header-cell *matHeaderCellDef class="numeric">Employees</th>
+            <td mat-cell *matCellDef="let row" class="numeric">{{ row.headcount | number }}</td>
+          </ng-container>
+          @for (stat of statColumns; track stat.key) {
+            <ng-container [matColumnDef]="stat.key">
+              <th mat-header-cell *matHeaderCellDef class="numeric">{{ stat.label }}</th>
+              <td mat-cell *matCellDef="let row" class="numeric">{{ row[stat.key] | money }}</td>
+            </ng-container>
+          }
+
+          <tr mat-header-row *matHeaderRowDef="jobTitleColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: jobTitleColumns"></tr>
+        </table>
+      </div>
+
+      <h3>Salary distribution ({{ d.distribution.currency }})</h3>
+      <p class="hint">Number of employees in each salary range.</p>
+      <app-distribution-chart [buckets]="d.distribution.buckets" />
+    } @else {
+      <div class="message error" role="alert">
+        <p>Could not load details for {{ country.countryName }}.</p>
+        <button mat-stroked-button data-testid="retry-details" (click)="retryDetails()">
+          Retry
+        </button>
+      </div>
+    }
+  </section>
+} @else if (countries().data?.length) {
+  <p class="hint prompt">Select a country to see its job titles and salary distribution.</p>
+}

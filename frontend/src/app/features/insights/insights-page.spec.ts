@@ -130,7 +130,8 @@ describe('InsightsPage', () => {
   });
 
   it('shows_a_dash_for_the_average_when_there_are_no_employees', async () => {
-    api.summaryResult = () => of({ ...SUMMARY, headcount: 0, totalAnnualCost: usd(0), averageSalary: null });
+    api.summaryResult = () =>
+      of({ ...SUMMARY, headcount: 0, totalAnnualCost: usd(0), averageSalary: null });
 
     await render();
 
@@ -140,7 +141,9 @@ describe('InsightsPage', () => {
   it('compares_countries_in_their_own_currencies', async () => {
     await render();
 
-    const rows = Array.from(element.querySelectorAll('tr.mat-mdc-row')).map((row) => row.textContent ?? '');
+    const rows = Array.from(element.querySelectorAll('tr.mat-mdc-row')).map(
+      (row) => row.textContent ?? '',
+    );
     expect(rows).toHaveLength(2);
     expect(rows[0]).toContain('India');
     expect(rows[0]).toContain('2,512');
@@ -151,7 +154,9 @@ describe('InsightsPage', () => {
   it('invites_a_choice_of_country_before_one_is_selected', async () => {
     await render();
 
-    expect(element.textContent).toContain('Select a country to see its job titles and salary distribution');
+    expect(element.textContent).toContain(
+      'Select a country to see its job titles and salary distribution',
+    );
     expect(api.jobTitleRequests).toEqual([]);
   });
 
@@ -173,8 +178,12 @@ describe('InsightsPage', () => {
 
     await click('[data-testid="select-IN"]');
 
-    expect(element.querySelector('[data-testid="select-IN"]')?.getAttribute('aria-pressed')).toBe('true');
-    expect(element.querySelector('[data-testid="select-US"]')?.getAttribute('aria-pressed')).toBe('false');
+    expect(element.querySelector('[data-testid="select-IN"]')?.getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    expect(element.querySelector('[data-testid="select-US"]')?.getAttribute('aria-pressed')).toBe(
+      'false',
+    );
   });
 
   it('switches_to_another_country', async () => {
@@ -210,7 +219,8 @@ describe('InsightsPage', () => {
 
   it('offers_a_retry_when_the_country_table_fails', async () => {
     let attempt = 0;
-    api.countriesResult = () => (++attempt === 1 ? throwError(() => new Error('down')) : of([INDIA]));
+    api.countriesResult = () =>
+      ++attempt === 1 ? throwError(() => new Error('down')) : of([INDIA]);
     await render();
     expect(element.textContent).toContain('Could not load the country comparison');
 
@@ -234,12 +244,15 @@ describe('InsightsPage', () => {
 
     await click('[data-testid="select-IN"]');
 
-    expect(element.querySelectorAll('[data-testid="details"] mat-progress-bar').length).toBeGreaterThanOrEqual(1);
+    expect(
+      element.querySelectorAll('[data-testid="details"] mat-progress-bar').length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it('offers_a_retry_when_the_details_fail', async () => {
     let attempt = 0;
-    api.jobTitlesResult = () => (++attempt === 1 ? throwError(() => new Error('down')) : of([ENGINEERS]));
+    api.jobTitlesResult = () =>
+      ++attempt === 1 ? throwError(() => new Error('down')) : of([ENGINEERS]);
     await render();
     await click('[data-testid="select-IN"]');
     expect(element.textContent).toContain('Could not load details for India');
