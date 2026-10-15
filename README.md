@@ -55,6 +55,7 @@ Defaults work out of the box. To override database settings, copy `.env.example`
 - [Requirements](docs/requirements.md)
 - [Architecture](docs/architecture.md)
 - [Architecture decision records](docs/adr/)
+- [Performance notes](docs/performance.md)
 - [How AI tools were used](docs/ai-usage.md)
 
 ## Live demo & video
