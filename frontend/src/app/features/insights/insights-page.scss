@@ -51,6 +51,11 @@ h3 {
   text-align: center;
 }
 
+/* Wide tables scroll inside their own box, so a narrow window does not stretch the whole page. */
+.table-scroll {
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
 }

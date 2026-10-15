@@ -266,7 +266,9 @@ describe('InsightsPage', () => {
     await render();
     await click('[data-testid="select-IN"]');
 
-    const names = Array.from(element.querySelectorAll('table')).map((table) => table.getAttribute('aria-label'));
+    const names = Array.from(element.querySelectorAll('table')).map((table) =>
+      table.getAttribute('aria-label'),
+    );
 
     expect(names).toEqual(['Pay by country', 'Pay by job title in India']);
   });
