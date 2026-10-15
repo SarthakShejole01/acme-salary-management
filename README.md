@@ -46,6 +46,14 @@ cd backend && ./gradlew bootRun
 cd frontend && npm ci && npm start
 ```
 
+**Run the production image** (Angular + Spring Boot in one container, served on http://localhost:8080):
+
+```bash
+docker compose --profile app up --build     # builds the image, starts PostgreSQL and the app
+```
+
+The image is built by the multi-stage [`Dockerfile`](Dockerfile): Node builds the Angular app, Gradle builds the backend with the Angular files inside, and a small JRE image runs it as a non-root user. `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` configure the database.
+
 **Seed data** — 10,000 realistic, deterministic employees (same data every run):
 
 ```bash
