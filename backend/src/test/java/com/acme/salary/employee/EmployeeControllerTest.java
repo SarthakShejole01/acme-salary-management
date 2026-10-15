@@ -8,13 +8,19 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.acme.salary.common.PageResponse;
 import com.acme.salary.currency.Money;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Currency;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -210,6 +216,61 @@ class EmployeeControllerTest {
 				.extractingPath("$.detail")
 				.asString()
 				.doesNotContain("constraint");
+	}
+
+	@Test
+	void lists_employees_as_a_page_using_filters_paging_and_sort() {
+		given(this.service.search(any(), any())).willReturn(new PageResponse<>(List.of(employee(42L)), 1, 5, 6, 2));
+
+		assertThat(this.mvc.get().uri("/api/employees?page=1&size=5&sort=salary,desc&search=sharma"
+				+ "&country=IN&department=Engineering&jobTitle=Software Engineer"))
+				.hasStatusOk()
+				.bodyJson().isLenientlyEqualTo("""
+						{
+						  "content": [ { "id": 42, "employeeCode": "EMP-00001" } ],
+						  "page": 1, "size": 5, "totalElements": 6, "totalPages": 2
+						}
+						""");
+		verify(this.service).search(
+				new EmployeeSearchCriteria("sharma", Country.IN, "Engineering", "Software Engineer"),
+				PageRequest.of(1, 5, Sort.by(Sort.Direction.DESC, "salary")));
+	}
+
+	@Test
+	void lists_the_first_20_employees_by_default() {
+		given(this.service.search(any(), any())).willReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+
+		assertThat(this.mvc.get().uri("/api/employees")).hasStatusOk();
+
+		verify(this.service).search(new EmployeeSearchCriteria(null, null, null, null), PageRequest.of(0, 20));
+	}
+
+	@Test
+	void caps_the_page_size_at_100() {
+		given(this.service.search(any(), any())).willReturn(new PageResponse<>(List.of(), 0, 100, 0, 0));
+		ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+
+		this.mvc.get().uri("/api/employees?size=500").exchange();
+
+		verify(this.service).search(any(), pageable.capture());
+		assertThat(pageable.getValue().getPageSize()).isEqualTo(100);
+	}
+
+	@Test
+	void rejects_an_unsupported_sort_with_400() {
+		given(this.service.search(any(), any())).willThrow(new UnsupportedSortException("createdAt"));
+
+		assertThat(this.mvc.get().uri("/api/employees?sort=createdAt"))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.bodyJson().extractingPath("$.errors[0].field").isEqualTo("sort");
+	}
+
+	@Test
+	void rejects_an_unknown_country_filter_with_400() {
+		assertThat(this.mvc.get().uri("/api/employees?country=XX"))
+				.hasStatus(HttpStatus.BAD_REQUEST)
+				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
+		verifyNoInteractions(this.service);
 	}
 
 	private static EmployeeResponse employee(Long id) {
