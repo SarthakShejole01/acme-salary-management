@@ -4,7 +4,7 @@ Planning notes for building ACME Salary Management. Written before coding; updat
 
 ## Stack
 
-Java 21 · Spring Boot 4 · Gradle (Kotlin DSL) · Spring Data JPA/Hibernate · Flyway · PostgreSQL · Angular (standalone, signals) · PrimeNG · JUnit 5/AssertJ/Mockito/Testcontainers · GitHub Actions · Docker (single image) · Render + Neon Postgres.
+Java 21 · Spring Boot 4 · Gradle (Kotlin DSL) · Spring Data JPA/Hibernate · Flyway · PostgreSQL · Angular (standalone, signals) · Angular Material · JUnit 5/AssertJ/Mockito/Testcontainers · GitHub Actions · Docker (single image) · Render + Neon Postgres.
 
 ## Working method
 
@@ -25,7 +25,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 
 ### Step 2 — Scaffold & CI ◐
 5. Spring Boot backend in `backend/` (Web, Data JPA, Validation, Flyway, PostgreSQL, Actuator, Testcontainers). Base package `com.acme.salary`. Context-loads test passes.
-6. Angular frontend in `frontend/` (standalone, routing, SCSS, PrimeNG). Dev proxy `/api` → `localhost:8080`.
+6. Angular frontend in `frontend/` (standalone, routing, SCSS, Angular Material). Dev proxy `/api` → `localhost:8080`.
 7. `docker-compose.yml` with PostgreSQL 16 for local dev; `application.yml` reads DB settings from env vars with local defaults.
 8. `.github/workflows/ci.yml`: backend `./gradlew test` (Docker available for Testcontainers) + frontend `npm ci && npm test -- --watch=false` + `npm run build`.
 
@@ -49,7 +49,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 Each query tested on a small known dataset (e.g. 5 salaries → known median).
 
 ### Step 6 — UI ☐
-21. Employees page: PrimeNG lazy table, debounced search, country/department/title filters, sorting.
+21. Employees page: Material table + paginator + sort (server-side), debounced search, country/department/title filters, sorting.
 22. Add/edit dialog (reactive form, validation messages mirroring backend rules, server error display); delete with confirmation; CSV export button.
 23. Insights dashboard: country comparison table, job-title drill-down, distribution chart, summary cards ("≈ USD, rates as of …").
 24. Loading / empty / error states everywhere; component & service tests.
@@ -65,3 +65,5 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — Spring Boot 4.1 instead of 3.** Boot 3.x is out of open-source support and no longer on Spring Initializr. See [ADR 006](adr/006-spring-boot-4.md).
 - **2026-10-15 — Branching.** Each push gets its own branch cut from `dev` and a PR into `dev`.
 - **2026-10-15 — Tests pin `postgres:16-alpine`.** Not `latest`, so test runs are reproducible and match the local Compose database (item 7).
+- **2026-10-15 — Angular Material instead of PrimeNG.** PrimeNG is now commercially licensed and needs a licence key. See [ADR 007](adr/007-angular-material-over-primeng.md).
+- **2026-10-15 — Node 24.15+ required.** Angular 22 needs Node `^22.22.3 || ^24.15.0 || >=26`. Local dev uses Node 24 LTS (24.22.0); CI will pin Node 24.

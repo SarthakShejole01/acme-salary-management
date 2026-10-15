@@ -45,7 +45,7 @@ Rules:
 frontend/src/app/
 ├── core/         HTTP services, interceptors, error handling
 ├── features/
-│   ├── employees/   list (lazy table + filters), form dialog
+│   ├── employees/   list (server-paged table + filters), form dialog
 │   └── insights/    dashboard: country table, job-title drill-down, distribution, summary
 └── shared/       reusable components, pipes (e.g. money formatting)
 ```

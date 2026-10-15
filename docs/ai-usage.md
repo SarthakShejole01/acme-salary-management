@@ -27,4 +27,5 @@ AI was used as a collaborator across the lifecycle, with every output reviewed, 
 
 | Date | What the AI produced | How it was caught | Fix |
 |------|---------------------|-------------------|-----|
-| _to be filled as it happens_ | | | |
+| 2026-10-15 | Plan specified Spring Boot 3, which had left open-source support (June 2026) by scaffolding time | Spring Initializr no longer offered any 3.x version | Moved to Spring Boot 4.1 — [ADR 006](adr/006-spring-boot-4.md) |
+| 2026-10-15 | Plan specified PrimeNG as a free UI library; it is now under a commercial licence requiring a key | `npm install` pulled in `@primeui/license-manager`; read the package's LICENSE.md | Switched to Angular Material — [ADR 007](adr/007-angular-material-over-primeng.md) |
