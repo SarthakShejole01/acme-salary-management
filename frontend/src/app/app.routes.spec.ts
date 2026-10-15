@@ -15,6 +15,7 @@ describe('routes', () => {
           useValue: {
             search: () => of({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }),
             referenceData: () => of({ countries: [], departments: [], jobTitles: [], employmentTypes: [] }),
+            exportUrl: () => '/api/employees/export.csv',
           },
         },
       ],

@@ -11,6 +11,23 @@
   .count {
     color: var(--mat-sys-on-surface-variant);
   }
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .filters {

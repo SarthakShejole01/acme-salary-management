@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -10,6 +10,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   BehaviorSubject,
   Subject,
@@ -26,6 +30,8 @@ import {
 import { EmployeeApi } from '../../core/employee-api';
 import { Employee, EmployeeQuery, EmploymentType, Page, ReferenceData } from '../../core/models';
 import { MoneyPipe } from '../../shared/money.pipe';
+import { ConfirmDialog, ConfirmDialogData } from '../../shared/confirm-dialog';
+import { EmployeeFormData, EmployeeFormDialog } from './employee-form-dialog';
 
 type Filter = 'country' | 'department' | 'jobTitle';
 
@@ -39,7 +45,12 @@ const INITIAL_QUERY: EmployeeQuery = {
   jobTitle: '',
 };
 
-const NO_REFERENCE_DATA: ReferenceData = { countries: [], departments: [], jobTitles: [], employmentTypes: [] };
+const NO_REFERENCE_DATA: ReferenceData = {
+  countries: [],
+  departments: [],
+  jobTitles: [],
+  employmentTypes: [],
+};
 
 const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
   FULL_TIME: 'Full-time',
@@ -61,6 +72,8 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
     MatSelectModule,
     MatProgressBarModule,
     MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
     MoneyPipe,
   ],
   templateUrl: './employees-page.html',
@@ -68,6 +81,10 @@ const EMPLOYMENT_TYPE_LABELS: Record<EmploymentType, string> = {
 })
 export class EmployeesPage {
   private readonly api = inject(EmployeeApi);
+
+  private readonly dialog = inject(MatDialog);
+
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly columns = [
     'employeeCode',
@@ -79,6 +96,7 @@ export class EmployeesPage {
     'salary',
     'employmentType',
     'hireDate',
+    'actions',
   ];
 
   protected readonly pageSizes = [20, 50, 100];
@@ -94,10 +112,18 @@ export class EmployeesPage {
 
   protected readonly result = signal<Page<Employee> | null>(null);
 
+  /** Reloaded after a save, as a new department or job title may now exist. */
+  private readonly refreshReferenceData$ = new Subject<void>();
+
   protected readonly referenceData = toSignal(
-    this.api.referenceData().pipe(catchError(() => of(NO_REFERENCE_DATA))),
+    this.refreshReferenceData$.pipe(
+      startWith(undefined),
+      switchMap(() => this.api.referenceData().pipe(catchError(() => of(NO_REFERENCE_DATA)))),
+    ),
     { initialValue: NO_REFERENCE_DATA },
   );
+
+  protected readonly exportUrl = computed(() => this.api.exportUrl(this.query()));
 
   private readonly retry$ = new Subject<void>();
 
@@ -153,6 +179,53 @@ export class EmployeesPage {
 
   protected retry(): void {
     this.retry$.next();
+  }
+
+  protected add(): void {
+    this.openForm(undefined);
+  }
+
+  protected edit(employee: Employee): void {
+    this.openForm(employee);
+  }
+
+  protected remove(employee: Employee): void {
+    const data: ConfirmDialogData = {
+      title: 'Delete employee',
+      message: `Delete ${employee.fullName} (${employee.employeeCode})? This cannot be undone.`,
+      confirmLabel: 'Delete',
+    };
+    this.dialog
+      .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, { data })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed === true),
+        switchMap(() => this.api.delete(employee.id)),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open(`Deleted ${employee.fullName}`, undefined, { duration: 4000 });
+          this.retry$.next();
+        },
+        error: () =>
+          this.snackBar.open(`Could not delete ${employee.fullName}. Please try again.`, 'Dismiss'),
+      });
+  }
+
+  private openForm(employee: Employee | undefined): void {
+    const data: EmployeeFormData = { employee, referenceData: this.referenceData() };
+    this.dialog
+      .open<EmployeeFormDialog, EmployeeFormData, Employee>(EmployeeFormDialog, {
+        data,
+        width: '640px',
+      })
+      .afterClosed()
+      .pipe(filter((saved): saved is Employee => saved !== undefined))
+      .subscribe((saved) => {
+        this.snackBar.open(`Saved ${saved.fullName}`, undefined, { duration: 4000 });
+        this.retry$.next();
+        this.refreshReferenceData$.next();
+      });
   }
 
   protected employmentTypeLabel(type: EmploymentType): string {

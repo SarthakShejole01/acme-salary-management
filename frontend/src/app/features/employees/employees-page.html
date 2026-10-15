@@ -3,6 +3,15 @@
   @if (status() === 'loaded' && result(); as page) {
     <span class="count">{{ page.totalElements }} employees</span>
   }
+  <span class="spacer"></span>
+  <a mat-stroked-button data-testid="export" [href]="exportUrl()" download>
+    <mat-icon fontSet="material-symbols-outlined">download</mat-icon>
+    Export CSV
+  </a>
+  <button mat-flat-button data-testid="add" (click)="add()">
+    <mat-icon fontSet="material-symbols-outlined">person_add</mat-icon>
+    Add employee
+  </button>
 </header>
 
 <section class="filters" aria-label="Filters">
@@ -68,7 +77,9 @@
 } @else if (isEmpty()) {
   <div class="message">
     <p>No employees match these filters.</p>
-    <button mat-stroked-button data-testid="clear-filters" (click)="clearFilters()">Clear filters</button>
+    <button mat-stroked-button data-testid="clear-filters" (click)="clearFilters()">
+      Clear filters
+    </button>
   </div>
 } @else {
   <div class="table-container">
@@ -105,7 +116,15 @@
         <td mat-cell *matCellDef="let e">{{ e.country }}</td>
       </ng-container>
       <ng-container matColumnDef="salary">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before" class="numeric">Salary</th>
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          arrowPosition="before"
+          class="numeric"
+        >
+          Salary
+        </th>
         <td mat-cell *matCellDef="let e" class="numeric">{{ e.salary | money }}</td>
       </ng-container>
       <ng-container matColumnDef="employmentType">
@@ -115,6 +134,30 @@
       <ng-container matColumnDef="hireDate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Hired</th>
         <td mat-cell *matCellDef="let e">{{ e.hireDate | date: 'mediumDate' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Actions</span></th>
+        <td mat-cell *matCellDef="let e" class="actions">
+          <button
+            mat-icon-button
+            data-testid="edit"
+            [attr.aria-label]="'Edit ' + e.fullName"
+            matTooltip="Edit"
+            (click)="edit(e)"
+          >
+            <mat-icon fontSet="material-symbols-outlined">edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            data-testid="delete"
+            [attr.aria-label]="'Delete ' + e.fullName"
+            matTooltip="Delete"
+            (click)="remove(e)"
+          >
+            <mat-icon fontSet="material-symbols-outlined">delete</mat-icon>
+          </button>
+        </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
