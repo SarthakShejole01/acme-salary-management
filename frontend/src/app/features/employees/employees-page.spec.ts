@@ -183,8 +183,8 @@ describe('EmployeesPage', () => {
   });
 
   it('searches_once_typing_pauses', async () => {
-    vi.useFakeTimers();
     const element = await render();
+    vi.useFakeTimers();
     const input = element.querySelector('[data-testid="search"]') as HTMLInputElement;
 
     input.value = 'sharma';
