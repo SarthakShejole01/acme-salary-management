@@ -67,6 +67,14 @@ class HistogramBinsTest {
 	}
 
 	@Test
+	void keeps_bucket_edges_in_whole_cents() {
+		HistogramBins bins = HistogramBins.covering(amount("100.00"), amount("100.23"), 10);
+
+		assertThat(bins.width().stripTrailingZeros().scale()).isLessThanOrEqualTo(2);
+		assertThat(bins.start().stripTrailingZeros().scale()).isLessThanOrEqualTo(2);
+	}
+
+	@Test
 	void gives_each_bucket_a_lower_and_upper_edge() {
 		HistogramBins bins = HistogramBins.covering(amount("16000"), amount("109500"), 10);
 
