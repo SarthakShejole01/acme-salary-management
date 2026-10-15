@@ -21,7 +21,16 @@ AI was used as a collaborator across the lifecycle, with every output reviewed, 
 
 - **Prompt (summary):** shared the job description and assessment brief; asked for an implementation plan covering stack, scope, data model, testing and commit strategy.
 - **Kept:** package-by-feature structure, SQL-side aggregations, deterministic seeding, documenting exclusions explicitly.
-- **Changed / decided myself:** _fill in — e.g. chose PostgreSQL over the SQLite suggested by the brief, trimmed features, etc._
+- **Changed / decided myself:** chose PostgreSQL over the SQLite suggested by the brief ([ADR 002](adr/002-postgresql-over-sqlite.md)); kept the scope to base salary and wrote the exclusions down ([requirements](requirements.md)); chose local currency with fixed, dated rates ([ADR 003](adr/003-local-currency-with-fixed-exchange-rates.md)). During the build, when the plan met reality: moved to Spring Boot 4.1 because Boot 3 is out of open-source support ([ADR 006](adr/006-spring-boot-4.md)); picked Angular Material over a commercially licensed PrimeNG ([ADR 007](adr/007-angular-material-over-primeng.md)); upgraded Node to run Angular 22 rather than step down a major version; set the branch-per-change, pull-request-into-`dev` workflow; merged each pull request myself.
+
+### What the corrections have in common
+
+1. **Stale knowledge about a moving ecosystem.** The plan named Spring Boot 3 and PrimeNG; both had changed by the day they were used. The cheap defence was to check the tool (Spring Initializr, `npm view`, the package licence) before building on a version.
+2. **Tests that passed for the wrong reason.** A cached template, a read from the persistence context, a mock that does not follow a forward, a count assertion that held while the bug was live. The defence was to **break the code on purpose** and watch the test fail, and to commit every test red before its implementation.
+3. **Bugs only a real run exposes.** Clipped and overlapping chart labels, an Add dialog with no countries after a failed request, a table overflowing at 400 px: unit tests were green for all of them. They were found by driving the running application in a browser, measuring the page, and blocking an endpoint on purpose.
+4. **Tooling slips, not logic errors.** Shell quoting that altered Java source, a command chain that committed after a failure. The defence was reading `git show --stat` and the compiler output instead of trusting a silent success.
+
+Apart from one commit prefix noticed after merging, each row was caught before the change was merged: by a test, a build, a review of the diff or a manual check, which is the point of the working agreement in [`CLAUDE.md`](../CLAUDE.md). The two outdated-ecosystem assumptions sit in the original plan documents and were corrected when the backend and frontend were scaffolded.
 
 ### Corrections (where AI was wrong)
 
@@ -35,8 +44,7 @@ AI was used as a collaborator across the lifecycle, with every output reviewed, 
 | 2026-10-15 | Histogram width of 2.5 × 10⁻² = 0.025 — three decimals, which `Money` rejects | Self-review of `HistogramBins` | Test reproducing it, then round sub-cent widths up to whole cents |
 | 2026-10-15 | CSV formula-injection test asserted the wrong shape for values that also need quoting | Re-read the test against RFC 4180 before implementing | Corrected the assertion (unpushed commit amended) |
 | 2026-10-15 | CSV exporter test omitted the JPA auditing config (`created_at` null); a `&&` chain committed the red feature commit because a later `grep` succeeded | Test run output showed 5 failures right after the commit | Fixed the test setup and rebuilt the two unpushed commits; check results before committing |
-| 2026-10-15 | Shell heredocs silently halved backslashes / turned `
-` into real line breaks in Java sources | Compiler errors | Write such files with the editor tool or a script file instead of inline shell strings |
+| 2026-10-15 | Shell heredocs silently halved backslashes / turned backslash escapes such as `\r\n` into real line breaks in Java sources | Compiler errors | Write such files with the editor tool or a script file instead of inline shell strings |
 | 2026-10-15 | One commit used a `perf:` prefix, not in the CLAUDE.md commit types | Self-review when reporting | Left as pushed; use `chore:`/`feat:` going forward |
 | 2026-10-15 | Employees page search box used a `[value]` binding, so Material's form field kept stale state after "Clear filters"; a failed load still showed the previous employee count | Manual browser check (not caught by the first unit tests) | Tests reproducing both, then a `FormControl` and a count gated on the loaded state |
 | 2026-10-15 | Salary hint text in the add-employee dialog overlapped the next field's label | Manual browser check | Shorter hint |
