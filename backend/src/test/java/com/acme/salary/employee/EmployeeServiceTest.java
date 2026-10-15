@@ -165,6 +165,41 @@ class EmployeeServiceTest {
 				.hasFieldOrPropertyWithValue("field", "hireDate");
 	}
 
+	@Test
+	void gets_an_existing_employee() {
+		when(this.repository.findById(42L)).thenReturn(Optional.of(existingUsEmployee(42L)));
+
+		EmployeeResponse found = this.service.get(42L);
+
+		assertThat(found.id()).isEqualTo(42L);
+		assertThat(found.employeeCode()).isEqualTo("EMP-00001");
+	}
+
+	@Test
+	void rejects_get_of_an_employee_that_does_not_exist() {
+		when(this.repository.findById(42L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> this.service.get(42L)).isInstanceOf(EmployeeNotFoundException.class);
+	}
+
+	@Test
+	void deletes_an_existing_employee() {
+		Employee existing = existingUsEmployee(42L);
+		when(this.repository.findById(42L)).thenReturn(Optional.of(existing));
+
+		this.service.delete(42L);
+
+		verify(this.repository).delete(existing);
+	}
+
+	@Test
+	void rejects_delete_of_an_employee_that_does_not_exist() {
+		when(this.repository.findById(42L)).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> this.service.delete(42L)).isInstanceOf(EmployeeNotFoundException.class);
+		verify(this.repository, never()).delete(any());
+	}
+
 	private static Employee existingUsEmployee(long id) {
 		Employee employee = new Employee("EMP-00001", "Priya Sharma", "priya.sharma@acme.com", "Software Engineer",
 				"Engineering", Country.US, new BigDecimal("120000"), EmploymentType.FULL_TIME, LocalDate.of(2020, 1, 6));
