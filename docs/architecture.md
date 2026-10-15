@@ -69,6 +69,21 @@ frontend/src/app/
 | GET | `/api/insights/summary` | Org-wide totals in USD (approximate) |
 | GET | `/api/reference-data` | Countries, departments, job titles for dropdowns |
 
+### Errors
+
+All errors are RFC 7807 `application/problem+json` bodies. Field-level problems add an `errors` list:
+
+```json
+{ "status": 409, "title": "Conflict", "detail": "Email priya@acme.com is already in use",
+  "errors": [ { "field": "email", "message": "Email priya@acme.com is already in use" } ] }
+```
+
+| Status | When |
+|--------|------|
+| 400 | Bean Validation failure (one entry per field), business rule (e.g. future hire date), malformed JSON / unknown enum value |
+| 404 | Employee id does not exist |
+| 409 | Employee code or email already used; also a concurrent duplicate caught by a database constraint (generic detail, no SQL exposed) |
+
 ## Data model (initial)
 
 ```
