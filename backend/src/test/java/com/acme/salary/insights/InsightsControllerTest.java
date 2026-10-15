@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import com.acme.salary.currency.Money;
 import com.acme.salary.employee.Country;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,25 @@ class InsightsControllerTest {
 					      "to":   { "amount": 20000.00, "currency": "GBP" },
 					      "headcount": 3 }
 					  ]
+					}
+					""");
+	}
+
+	@Test
+	void returns_the_org_summary_in_usd_labelled_approximate() {
+		Currency usd = Currency.getInstance("USD");
+		given(this.service.summary()).willReturn(new OrgSummary(10_000, new Money(new BigDecimal("950000000"), usd),
+				new Money(new BigDecimal("95000"), usd), true, LocalDate.of(2026, 10, 14)));
+
+		assertThat(this.mvc.get().uri("/api/insights/summary"))
+			.hasStatusOk()
+			.bodyJson().isStrictlyEqualTo("""
+					{
+					  "headcount": 10000,
+					  "totalAnnualCost": { "amount": 950000000.00, "currency": "USD" },
+					  "averageSalary":   { "amount": 95000.00,     "currency": "USD" },
+					  "approximate": true,
+					  "ratesAsOf": "2026-10-14"
 					}
 					""");
 	}
