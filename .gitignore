@@ -21,6 +21,11 @@ build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
+.classpath
+.project
+.settings/
+.factorypath
+bin/
 *.log
 hs_err_pid*
 
