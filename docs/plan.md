@@ -36,7 +36,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 12. `EmployeeController` CRUD with `@WebMvcTest`; errors as RFC 7807 `ProblemDetail` via `GlobalExceptionHandler`; 404 for missing, 409 for duplicates, 400 for validation.
 13. Paginated search/filter: `GET /api/employees?page&size&sort&search&country&department&jobTitle` using JPA Specifications; repository test with Testcontainers. `GET /api/reference-data` for dropdowns.
 
-### Step 4 — Seed 10,000 employees ☐
+### Step 4 — Seed 10,000 employees ◐
 14. `EmployeeGenerator` (pure, seeded `Random`): names from `first_names.txt` / `last_names.txt`; salary = title band × country factor ± bounded noise; tests for count, determinism, ranges, unique codes/emails.
 15. `SeedRunner`: JDBC batch insert (batch 1,000), idempotent (skips if data exists; `--reset` option), runs via Spring profile `seed`. Record timing for `performance.md`.
 
