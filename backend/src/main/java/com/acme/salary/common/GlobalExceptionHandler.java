@@ -1,6 +1,7 @@
 package com.acme.salary.common;
 
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,6 +25,26 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 	}
 
+	@ExceptionHandler(ConflictException.class)
+	ProblemDetail handleConflict(ConflictException ex) {
+		return withFieldError(HttpStatus.CONFLICT, ex.getField(), ex.getMessage());
+	}
+
+	@ExceptionHandler(BusinessRuleException.class)
+	ProblemDetail handleBusinessRule(BusinessRuleException ex) {
+		return withFieldError(HttpStatus.BAD_REQUEST, ex.getField(), ex.getMessage());
+	}
+
+	/**
+	 * Backstop for a unique constraint hit by a concurrent request after the service's own checks passed.
+	 * The database message is not exposed.
+	 */
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+				"The change conflicts with existing data. Reload and try again.");
+	}
+
 	/** Adds the failing fields to Spring's default 400 problem. */
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -36,6 +57,12 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		ProblemDetail problem = ex.getBody();
 		problem.setProperty("errors", errors);
 		return handleExceptionInternal(ex, problem, headers, status, request);
+	}
+
+	private static ProblemDetail withFieldError(HttpStatus status, String field, String message) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, message);
+		problem.setProperty("errors", List.of(new FieldViolation(field, message)));
+		return problem;
 	}
 
 }
