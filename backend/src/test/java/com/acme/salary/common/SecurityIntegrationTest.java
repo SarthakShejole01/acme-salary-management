@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 /** The whole application with a shared HTTP basic-auth login configured, as in the deployed instance. */
 @SpringBootTest(properties = { "app.security.username=hr", "app.security.password=correct horse battery staple" })
@@ -31,8 +32,12 @@ class SecurityIntegrationTest {
 
 	@Test
 	void challenges_api_requests_without_credentials() {
-		assertThat(this.mvc.get().uri("/api/employees")).hasStatus(HttpStatus.UNAUTHORIZED)
-			.hasHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"ACME Salary Management\"");
+		MvcTestResult result = this.mvc.get().uri("/api/employees").exchange();
+
+		assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+		// Spring Security 7 also states the charset after the realm.
+		assertThat(result.getResponse().getHeader(HttpHeaders.WWW_AUTHENTICATE))
+			.startsWith("Basic realm=\"ACME Salary Management\"");
 	}
 
 	@Test

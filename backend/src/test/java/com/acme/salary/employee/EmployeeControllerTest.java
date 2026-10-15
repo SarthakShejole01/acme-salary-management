@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.acme.salary.common.SecurityConfiguration;
 import com.acme.salary.common.PageResponse;
 import com.acme.salary.currency.Money;
 import java.math.BigDecimal;
@@ -23,12 +24,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 @WebMvcTest(EmployeeController.class)
+@Import(SecurityConfiguration.class)
 class EmployeeControllerTest {
 
 	private static final String VALID_REQUEST = """

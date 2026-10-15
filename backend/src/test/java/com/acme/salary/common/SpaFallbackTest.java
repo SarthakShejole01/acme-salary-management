@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
  * resources and the error handler matter here, so no controller is loaded.
  */
 @WebMvcTest(controllers = SpaFallbackTest.NoControllers.class)
-@Import(SpaWebConfiguration.class)
+@Import({ SpaWebConfiguration.class, SecurityConfiguration.class })
 class SpaFallbackTest {
 
 	/** Not a controller: naming it makes @WebMvcTest load none (an empty list would mean "all of them"). */
