@@ -29,7 +29,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 7. `docker-compose.yml` with PostgreSQL 16 for local dev; `application.yml` reads DB settings from env vars with local defaults.
 8. `.github/workflows/ci.yml`: backend `./gradlew test` (Docker available for Testcontainers) + frontend `npm ci && npm test -- --watch=false` + `npm run build`.
 
-### Step 3 — Employee core (TDD) ☐
+### Step 3 — Employee core (TDD) ◐
 9. `Money` value object (BigDecimal amount, `Currency`; rejects null/negative; scale 2; equality by value). Country → currency mapping (`Country` enum: US, GB, IN, DE, FR, CA, AU, SG).
 10. Flyway `V1__create_employee.sql` (+ indexes from architecture.md) and `Employee` entity.
 11. `EmployeeService` create/update: unique employee code & email, salary > 0, currency derived from country, hire date not in the future (injected `Clock`).
