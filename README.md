@@ -46,6 +46,13 @@ cd backend && ./gradlew bootRun
 cd frontend && npm ci && npm start
 ```
 
+**Seed data** — 10,000 realistic, deterministic employees (same data every run):
+
+```bash
+cd backend && ./gradlew bootRun --args='--spring.profiles.active=seed'          # skips if employees exist
+cd backend && ./gradlew bootRun --args='--spring.profiles.active=seed --reset'  # replaces all employees
+```
+
 Defaults work out of the box. To override database settings, copy `.env.example` to `.env` (git-ignored) or set the `DB_*` environment variables.
 
 **Tests:** `cd backend && ./gradlew test` (needs Docker running — Testcontainers starts its own PostgreSQL) · `cd frontend && npm test -- --watch=false`

@@ -36,7 +36,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 12. `EmployeeController` CRUD with `@WebMvcTest`; errors as RFC 7807 `ProblemDetail` via `GlobalExceptionHandler`; 404 for missing, 409 for duplicates, 400 for validation.
 13. Paginated search/filter: `GET /api/employees?page&size&sort&search&country&department&jobTitle` using JPA Specifications; repository test with Testcontainers. `GET /api/reference-data` for dropdowns.
 
-### Step 4 — Seed 10,000 employees ◐
+### Step 4 — Seed 10,000 employees ☑
 14. `EmployeeGenerator` (pure, seeded `Random`): names from `first_names.txt` / `last_names.txt`; salary = title band × country factor ± bounded noise; tests for count, determinism, ranges, unique codes/emails.
 15. `SeedRunner`: JDBC batch insert (batch 1,000), idempotent (skips if data exists; `--reset` option), runs via Spring profile `seed`. Record timing for `performance.md`.
 
@@ -71,3 +71,4 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — No `lower(full_name)` / trigram index.** A b-tree index cannot serve `LIKE '%term%'` search. Measured in item 13: search over 10k rows takes 13.8 ms in PostgreSQL and ≤ 56 ms end to end, far under the 300 ms target. See [performance.md](performance.md).
 - **2026-10-15 — List API returns our own `PageResponse`**, not Spring's `Page` (whose JSON is not a stable contract). Sorting is whitelisted (unknown property → 400), defaults to name with `id` as tie-breaker; page size capped at 100.
 - **2026-10-15 — "Hire date not in the future" uses today in UTC** (injected `Clock`). Known limitation: between 00:00 and 05:30 IST a same-day hire in India is still "tomorrow" in UTC and is rejected. Acceptable for v1; revisit if HR reports it.
+- **2026-10-15 — Seed via JDBC batches with `reWriteBatchedInserts`.** 10k employees in ~0.9 s (vs ~2.4 s without the driver flag). Fixed random seed 42; idempotent unless `--reset`. See [performance.md](performance.md).
