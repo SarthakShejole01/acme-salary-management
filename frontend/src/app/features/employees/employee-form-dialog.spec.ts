@@ -92,7 +92,9 @@ describe('EmployeeFormDialog', () => {
   }
 
   async function choose(testId: string, option: string): Promise<void> {
-    const select = await loader.getHarness(MatSelectHarness.with({ selector: `[data-testid="${testId}"]` }));
+    const select = await loader.getHarness(
+      MatSelectHarness.with({ selector: `[data-testid="${testId}"]` }),
+    );
     await select.open();
     await select.clickOptions({ text: option });
   }
@@ -114,7 +116,9 @@ describe('EmployeeFormDialog', () => {
   }
 
   function errorFor(testId: string): string {
-    return input(testId).closest('mat-form-field')?.querySelector('mat-error')?.textContent?.trim() ?? '';
+    return (
+      input(testId).closest('mat-form-field')?.querySelector('mat-error')?.textContent?.trim() ?? ''
+    );
   }
 
   it('lists_what_is_missing_when_saving_an_empty_form', async () => {
@@ -206,7 +210,9 @@ describe('EmployeeFormDialog', () => {
     await type('fullName', 'Priya Sharma-Rao');
     await save();
 
-    expect(api.updated).toEqual([{ id: 7, request: expect.objectContaining({ fullName: 'Priya Sharma-Rao' }) }]);
+    expect(api.updated).toEqual([
+      { id: 7, request: expect.objectContaining({ fullName: 'Priya Sharma-Rao' }) },
+    ]);
     expect(close).toHaveBeenCalledWith(PRIYA);
   });
 
@@ -214,7 +220,11 @@ describe('EmployeeFormDialog', () => {
     await render();
     await fillValidForm();
     api.respond = () =>
-      throwError(() => problem(409, [{ field: 'email', message: 'Email priya.sharma@acme.com is already in use' }]));
+      throwError(() =>
+        problem(409, [
+          { field: 'email', message: 'Email priya.sharma@acme.com is already in use' },
+        ]),
+      );
 
     await save();
 

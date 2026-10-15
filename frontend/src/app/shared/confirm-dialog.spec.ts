@@ -28,7 +28,9 @@ describe('ConfirmDialog', () => {
   it('asks_the_question_with_a_named_confirm_button', async () => {
     const element = await render();
 
-    expect(element.textContent).toContain('Delete Priya Sharma (EMP-00001)? This cannot be undone.');
+    expect(element.textContent).toContain(
+      'Delete Priya Sharma (EMP-00001)? This cannot be undone.',
+    );
     expect(element.querySelector('[data-testid="confirm"]')?.textContent).toContain('Delete');
   });
 

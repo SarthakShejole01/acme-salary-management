@@ -1,0 +1,18 @@
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  column-gap: 16px;
+  row-gap: 4px;
+  padding-top: 8px;
+
+  mat-progress-bar,
+  .general-error,
+  .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.general-error {
+  margin: 0 0 8px;
+  color: var(--mat-sys-error);
+}
