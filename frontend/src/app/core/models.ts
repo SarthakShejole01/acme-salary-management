@@ -20,6 +20,19 @@ export interface Employee {
   hireDate: string;
 }
 
+/** Body for create and update. Currency is not sent: the server derives it from the country. */
+export interface EmployeeRequest {
+  employeeCode: string;
+  fullName: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  country: string;
+  salary: number;
+  employmentType: EmploymentType;
+  hireDate: string;
+}
+
 export interface Page<T> {
   content: T[];
   page: number;
@@ -55,4 +68,12 @@ export interface EmployeeQuery {
   country: string;
   department: string;
   jobTitle: string;
+}
+
+/** RFC 7807 body returned by the API for errors; field problems are listed in {@code errors}. */
+export interface Problem {
+  status: number;
+  title?: string;
+  detail?: string;
+  errors?: { field: string; message: string }[];
 }

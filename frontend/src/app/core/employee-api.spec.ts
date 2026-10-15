@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { EmployeeApi } from './employee-api';
-import { EmployeeQuery, Page, Employee, ReferenceData } from './models';
+import { EmployeeQuery, EmployeeRequest, Page, Employee, ReferenceData } from './models';
 
 describe('EmployeeApi', () => {
   let api: EmployeeApi;
@@ -72,6 +72,52 @@ describe('EmployeeApi', () => {
     });
 
     expect(received?.countries[0].name).toBe('India');
+  });
+
+  const request: EmployeeRequest = {
+    employeeCode: 'EMP-00001',
+    fullName: 'Priya Sharma',
+    email: 'priya.sharma@acme.com',
+    jobTitle: 'Software Engineer',
+    department: 'Engineering',
+    country: 'IN',
+    salary: 2400000,
+    employmentType: 'FULL_TIME',
+    hireDate: '2022-04-01',
+  };
+
+  it('creates_an_employee', () => {
+    api.create(request).subscribe();
+
+    const call = http.expectOne('/api/employees');
+    expect(call.request.method).toBe('POST');
+    expect(call.request.body).toEqual(request);
+    call.flush({});
+  });
+
+  it('updates_an_employee', () => {
+    api.update(42, request).subscribe();
+
+    const call = http.expectOne('/api/employees/42');
+    expect(call.request.method).toBe('PUT');
+    expect(call.request.body).toEqual(request);
+    call.flush({});
+  });
+
+  it('deletes_an_employee', () => {
+    api.delete(42).subscribe();
+
+    const call = http.expectOne('/api/employees/42');
+    expect(call.request.method).toBe('DELETE');
+    call.flush(null);
+  });
+
+  it('builds_a_csv_export_link_with_the_current_filters_and_sort', () => {
+    const url = api.exportUrl({ ...query, search: 'a b' });
+
+    expect(url).toBe(
+      '/api/employees/export.csv?sort=salary,desc&search=a%20b&country=IN&department=Engineering&jobTitle=Software%20Engineer',
+    );
   });
 
   function emptyPage(): Page<Employee> {

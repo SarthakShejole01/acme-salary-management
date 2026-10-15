@@ -4,26 +4,61 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 import { MatSortHarness } from '@angular/material/sort/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { NEVER, Observable, of, throwError } from 'rxjs';
 import { EmployeesPage } from './employees-page';
 import { EmployeeApi } from '../../core/employee-api';
+import { EmployeeFormDialog } from './employee-form-dialog';
+import { ConfirmDialog } from '../../shared/confirm-dialog';
 import { Employee, EmployeeQuery, Page, ReferenceData } from '../../core/models';
 
 class FakeEmployeeApi {
   readonly searches: EmployeeQuery[] = [];
-  respond: (query: EmployeeQuery) => Observable<Page<Employee>> = () => of(page([PRIYA, EMILY], 45));
+  respond: (query: EmployeeQuery) => Observable<Page<Employee>> = () =>
+    of(page([PRIYA, EMILY], 45));
 
   search(query: EmployeeQuery): Observable<Page<Employee>> {
     this.searches.push(query);
     return this.respond(query);
   }
 
+  readonly deleted: number[] = [];
+  deleteResult: () => Observable<void> = () => of(undefined);
+
   referenceData(): Observable<ReferenceData> {
     return of(REFERENCE_DATA);
   }
 
+  delete(id: number): Observable<void> {
+    this.deleted.push(id);
+    return this.deleteResult();
+  }
+
+  exportUrl(query: EmployeeQuery): string {
+    return `/api/employees/export.csv?country=${query.country}`;
+  }
+
   last(): EmployeeQuery {
     return this.searches[this.searches.length - 1];
+  }
+}
+
+class FakeDialog {
+  readonly opened: { component: unknown; data: unknown }[] = [];
+  result: unknown;
+
+  open(component: unknown, config: { data: unknown }) {
+    this.opened.push({ component, data: config.data });
+    return { afterClosed: () => of(this.result) };
+  }
+}
+
+class FakeSnackBar {
+  readonly messages: string[] = [];
+
+  open(message: string) {
+    this.messages.push(message);
   }
 }
 
@@ -67,14 +102,22 @@ function page(content: Employee[], totalElements = content.length): Page<Employe
 
 describe('EmployeesPage', () => {
   let api: FakeEmployeeApi;
+  let dialog: FakeDialog;
+  let snackBar: FakeSnackBar;
   let fixture: ComponentFixture<EmployeesPage>;
   let loader: HarnessLoader;
 
   beforeEach(() => {
     api = new FakeEmployeeApi();
+    dialog = new FakeDialog();
+    snackBar = new FakeSnackBar();
     TestBed.configureTestingModule({
       imports: [EmployeesPage],
-      providers: [{ provide: EmployeeApi, useValue: api }],
+      providers: [
+        { provide: EmployeeApi, useValue: api },
+        { provide: MatDialog, useValue: dialog },
+        { provide: MatSnackBar, useValue: snackBar },
+      ],
     });
   });
 
@@ -88,7 +131,9 @@ describe('EmployeesPage', () => {
   }
 
   function rows(element: HTMLElement): string[] {
-    return Array.from(element.querySelectorAll('tr.mat-mdc-row')).map((row) => row.textContent ?? '');
+    return Array.from(element.querySelectorAll('tr.mat-mdc-row')).map(
+      (row) => row.textContent ?? '',
+    );
   }
 
   it('shows_the_first_page_sorted_by_the_server_on_load', async () => {
@@ -144,7 +189,9 @@ describe('EmployeesPage', () => {
     const element = await render();
     expect(element.querySelector('.count')?.textContent).toContain('45 employees');
     api.respond = () => throwError(() => new Error('down'));
-    const country = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }));
+    const country = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }),
+    );
 
     await country.open();
     await country.clickOptions({ text: 'India' });
@@ -155,7 +202,9 @@ describe('EmployeesPage', () => {
 
   it('filters_by_country_and_returns_to_the_first_page', async () => {
     await render();
-    const country = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }));
+    const country = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }),
+    );
 
     await country.open();
     await country.clickOptions({ text: 'India' });
@@ -165,8 +214,12 @@ describe('EmployeesPage', () => {
 
   it('filters_by_department_and_job_title', async () => {
     await render();
-    const department = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="department-filter"]' }));
-    const jobTitle = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="job-title-filter"]' }));
+    const department = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="department-filter"]' }),
+    );
+    const jobTitle = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="job-title-filter"]' }),
+    );
 
     await department.open();
     await department.clickOptions({ text: 'Finance' });
@@ -212,14 +265,22 @@ describe('EmployeesPage', () => {
   it('clears_every_filter_from_the_empty_state', async () => {
     api.respond = () => of(page([]));
     const element = await render();
-    const country = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }));
+    const country = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }),
+    );
     await country.open();
     await country.clickOptions({ text: 'India' });
 
     (element.querySelector('[data-testid="clear-filters"]') as HTMLButtonElement).click();
     await fixture.whenStable();
 
-    expect(api.last()).toMatchObject({ search: '', country: '', department: '', jobTitle: '', page: 0 });
+    expect(api.last()).toMatchObject({
+      search: '',
+      country: '',
+      department: '',
+      jobTitle: '',
+      page: 0,
+    });
     expect((element.querySelector('[data-testid="search"]') as HTMLInputElement).value).toBe('');
   });
 
@@ -234,5 +295,90 @@ describe('EmployeesPage', () => {
     await fixture.whenStable();
 
     expect(input.value).toBe('');
+  });
+
+  async function click(element: HTMLElement, selector: string): Promise<void> {
+    (element.querySelector(selector) as HTMLElement).click();
+    await fixture.whenStable();
+  }
+
+  it('adds_an_employee_through_the_form_then_reloads', async () => {
+    const element = await render();
+    dialog.result = PRIYA;
+
+    await click(element, '[data-testid="add"]');
+
+    expect(dialog.opened[0]).toEqual({
+      component: EmployeeFormDialog,
+      data: { employee: undefined, referenceData: REFERENCE_DATA },
+    });
+    expect(snackBar.messages).toEqual(['Saved Priya Sharma']);
+    expect(api.searches).toHaveLength(2);
+  });
+
+  it('does_not_reload_when_the_form_is_cancelled', async () => {
+    const element = await render();
+    dialog.result = undefined;
+
+    await click(element, '[data-testid="add"]');
+
+    expect(api.searches).toHaveLength(1);
+    expect(snackBar.messages).toEqual([]);
+  });
+
+  it('opens_a_row_in_the_form_for_editing', async () => {
+    const element = await render();
+
+    await click(element, 'tr.mat-mdc-row [data-testid="edit"]');
+
+    expect(dialog.opened[0].data).toEqual({ employee: PRIYA, referenceData: REFERENCE_DATA });
+  });
+
+  it('deletes_an_employee_after_confirmation_then_reloads', async () => {
+    const element = await render();
+    dialog.result = true;
+
+    await click(element, 'tr.mat-mdc-row [data-testid="delete"]');
+
+    expect(dialog.opened[0].component).toBe(ConfirmDialog);
+    expect(dialog.opened[0].data).toMatchObject({
+      message: expect.stringContaining('Priya Sharma (EMP-00001)'),
+    });
+    expect(api.deleted).toEqual([1]);
+    expect(snackBar.messages).toEqual(['Deleted Priya Sharma']);
+    expect(api.searches).toHaveLength(2);
+  });
+
+  it('keeps_the_employee_when_delete_is_not_confirmed', async () => {
+    const element = await render();
+    dialog.result = false;
+
+    await click(element, 'tr.mat-mdc-row [data-testid="delete"]');
+
+    expect(api.deleted).toEqual([]);
+  });
+
+  it('says_so_when_a_delete_fails', async () => {
+    const element = await render();
+    dialog.result = true;
+    api.deleteResult = () => throwError(() => new Error('down'));
+
+    await click(element, 'tr.mat-mdc-row [data-testid="delete"]');
+
+    expect(snackBar.messages).toEqual(['Could not delete Priya Sharma. Please try again.']);
+  });
+
+  it('exports_the_list_with_the_current_filters', async () => {
+    const element = await render();
+    const country = await loader.getHarness(
+      MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }),
+    );
+
+    await country.open();
+    await country.clickOptions({ text: 'India' });
+
+    expect(element.querySelector('[data-testid="export"]')?.getAttribute('href')).toBe(
+      '/api/employees/export.csv?country=IN',
+    );
   });
 });
