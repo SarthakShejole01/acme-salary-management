@@ -48,7 +48,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 20. `GET /api/employees/export.csv` — filtered CSV export (streamed).
 Each query tested on a small known dataset (e.g. 5 salaries → known median).
 
-### Step 6 — UI ☐
+### Step 6 — UI ◐
 21. Employees page: Material table + paginator + sort (server-side), debounced search, country/department/title filters, sorting.
 22. Add/edit dialog (reactive form, validation messages mirroring backend rules, server error display); delete with confirmation; CSV export button.
 23. Insights dashboard: country comparison table, job-title drill-down, distribution chart, summary cards ("≈ USD, rates as of …").
@@ -77,3 +77,4 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — Exchange rates from the ECB, not invented.** V2 holds the European Central Bank euro reference rates of 2026-10-14, converted to USD per unit (8 places), so "rates as of" in the UI is a real, citable date. New rates = new migration.
 - **2026-10-15 — USD summary converts per currency, rounds once.** Salaries are summed per currency in SQL; each total is converted exactly (`numeric × rate`), the USD values are added and rounded half-up to cents once. A currency without a rate fails loudly (`MissingExchangeRateException`) rather than being left out of the total. Verified on the seed: API total equals an independent `sum(salary × usd_rate)` to the cent.
 - **2026-10-15 — CSV export: streamed, Excel-friendly, injection-safe.** Same filters/sort as the list; read in pages of 1,000 (flat memory); UTF-8 BOM so Excel shows accents; RFC 4180 quoting; text starting with `= + - @`, tab or CR prefixed with `'` (OWASP CSV injection) because HR opens the file in Excel. All 10k rows in ~0.3 s.
+- **2026-10-15 — Employees page state as an RxJS query stream.** The query (page, size, sort, search, filters) is a `BehaviorSubject` exposed to the template as a signal; every change flows through one `switchMap` to `EmployeeApi`, cancelling stale requests. Signals hold view state (loading / loaded / error, result). Any change but paging returns to page 1.
