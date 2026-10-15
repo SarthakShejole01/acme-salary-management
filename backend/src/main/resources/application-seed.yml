@@ -1,0 +1,4 @@
+# Profile "seed": load the generated employees and exit. No web server.
+spring:
+  main:
+    web-application-type: none
