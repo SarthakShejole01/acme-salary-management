@@ -18,5 +18,21 @@ services:
       timeout: 3s
       retries: 10
 
+  # The production image (Angular + Spring Boot) against the database above:
+  #   docker compose --profile app up --build
+  app:
+    profiles: ["app"]
+    image: acme-salary:local
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-acme_salary}
+      DB_USERNAME: ${DB_USERNAME:-acme}
+      DB_PASSWORD: ${DB_PASSWORD:-acme}
+    ports:
+      - "8080:8080"
+
 volumes:
   postgres-data:

@@ -50,3 +50,18 @@ Same setup, against the 10,000 seeded employees. End-to-end HTTP, best of 5 afte
 | `GET /api/insights/summary` (USD totals; 7 currency rows converted) | 9 ms |
 
 Country and job-title stats are one `GROUP BY` query each (`percentile_disc` for the median); the distribution is two small queries (min/max, then `width_bucket` counts). No employee rows are loaded into the application.
+
+## Docker image (plan item 25)
+
+Built and run locally (Docker Desktop, PostgreSQL 16 container, the 10,000 seeded employees).
+
+| Measure | Result |
+|---------|--------|
+| Image size | 393 MB (`eclipse-temurin:21-jre-alpine` plus a 53.6 MB application jar that includes the Angular build) |
+| Cold build (no cache) | about 7.5 min, of which 4 min is the first Gradle dependency download; later builds reuse the dependency layer |
+| Start-up to healthy | 13.4 s |
+| Memory under load | 279 MB of a **512 MB** limit (12 concurrent requests incl. four full 10,000-row CSV exports, three rounds); no OOM kill, no restarts |
+| JS bundle on the wire | 407 KB raw → 118 KB with gzip (`server.compression`) |
+
+JVM flags for a small instance: `-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k` (override with `JAVA_TOOL_OPTIONS`).
+
