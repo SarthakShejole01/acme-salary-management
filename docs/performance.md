@@ -44,5 +44,7 @@ Same setup, against the 10,000 seeded employees. End-to-end HTTP, best of 5 afte
 | `GET /api/insights/countries` (8 countries: headcount, min, max, avg, exact median) | 18 ms |
 | `GET /api/insights/countries/IN/job-titles` (19 titles) | 10 ms |
 | `GET /api/insights/countries/US/job-titles` | 10 ms |
+| `GET /api/insights/countries/IN/distribution` (7 buckets of ₹5 lakh) | 11 ms |
+| `GET /api/insights/countries/US/distribution` | 12 ms |
 
-One `GROUP BY country_code, currency` query with `percentile_disc`; no rows are loaded into the application.
+Country and job-title stats are one `GROUP BY` query each (`percentile_disc` for the median); the distribution is two small queries (min/max, then `width_bucket` counts). No employee rows are loaded into the application.

@@ -71,4 +71,26 @@ class InsightsControllerTest {
 			.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
 	}
 
+	@Test
+	void returns_the_salary_distribution_of_one_country() {
+		Currency gbp = Currency.getInstance("GBP");
+		given(this.service.distribution(Country.GB)).willReturn(new SalaryDistribution("GB", "GBP",
+				List.of(new DistributionBucket(new Money(new BigDecimal("10000"), gbp),
+						new Money(new BigDecimal("20000"), gbp), 3))));
+
+		assertThat(this.mvc.get().uri("/api/insights/countries/GB/distribution"))
+			.hasStatusOk()
+			.bodyJson().isStrictlyEqualTo("""
+					{
+					  "countryCode": "GB",
+					  "currency": "GBP",
+					  "buckets": [
+					    { "from": { "amount": 10000.00, "currency": "GBP" },
+					      "to":   { "amount": 20000.00, "currency": "GBP" },
+					      "headcount": 3 }
+					  ]
+					}
+					""");
+	}
+
 }
