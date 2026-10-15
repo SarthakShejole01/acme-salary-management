@@ -38,3 +38,6 @@ AI was used as a collaborator across the lifecycle, with every output reviewed, 
 | 2026-10-15 | Shell heredocs silently halved backslashes / turned `
 ` into real line breaks in Java sources | Compiler errors | Write such files with the editor tool or a script file instead of inline shell strings |
 | 2026-10-15 | One commit used a `perf:` prefix, not in the CLAUDE.md commit types | Self-review when reporting | Left as pushed; use `chore:`/`feat:` going forward |
+| 2026-10-15 | Employees page search box used a `[value]` binding, so Material's form field kept stale state after "Clear filters"; a failed load still showed the previous employee count | Manual browser check (not caught by the first unit tests) | Tests reproducing both, then a `FormControl` and a count gated on the loaded state |
+| 2026-10-15 | Salary hint text in the add-employee dialog overlapped the next field's label | Manual browser check | Shorter hint |
+| 2026-10-15 | SVG chart centred the first and last axis labels on the plot edges (clipped) and printed every label even when they overlapped ("SGD 20,000" ×10) | Measured label bounding boxes for all eight countries in the browser; screenshots alone were stale and showed nothing wrong | Tests first, then padded plot and thinned labels; re-measured: 0 overlaps in all eight |
