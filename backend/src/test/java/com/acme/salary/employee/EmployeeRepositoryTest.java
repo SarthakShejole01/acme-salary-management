@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Currency;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -121,6 +122,22 @@ class EmployeeRepositoryTest {
 
 		assertThat(codeTaken).isTrue();
 		assertThat(emailTaken).isTrue();
+	}
+
+	@Test
+	void lists_each_department_and_job_title_once_in_alphabetical_order() {
+		this.repository.saveAllAndFlush(List.of(
+				employee("EMP-00001", "a@acme.com", "Software Engineer", "Engineering"),
+				employee("EMP-00002", "b@acme.com", "Data Analyst", "Finance"),
+				employee("EMP-00003", "c@acme.com", "Software Engineer", "Engineering")));
+
+		assertThat(this.repository.findDistinctDepartments()).containsExactly("Engineering", "Finance");
+		assertThat(this.repository.findDistinctJobTitles()).containsExactly("Data Analyst", "Software Engineer");
+	}
+
+	private static Employee employee(String code, String email, String jobTitle, String department) {
+		return new Employee(code, "Priya Sharma", email, jobTitle, department, Country.IN, new BigDecimal("50000"),
+				EmploymentType.FULL_TIME, LocalDate.of(2022, 4, 1));
 	}
 
 	private static Employee employee(String code, String email, String salary) {
