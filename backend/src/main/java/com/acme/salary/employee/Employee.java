@@ -60,6 +60,14 @@ public class Employee {
 
 	public Employee(String employeeCode, String fullName, String email, String jobTitle, String department,
 			Country country, BigDecimal salaryAmount, EmploymentType employmentType, LocalDate hireDate) {
+		changeDetails(employeeCode, fullName, email, jobTitle, department, country, salaryAmount, employmentType,
+				hireDate);
+	}
+
+	/** Replaces every editable field; business rules are checked by the service beforehand. */
+	public void changeDetails(String employeeCode, String fullName, String email, String jobTitle,
+			String department, Country country, BigDecimal salaryAmount, EmploymentType employmentType,
+			LocalDate hireDate) {
 		this.employeeCode = employeeCode;
 		this.fullName = fullName;
 		this.email = email;

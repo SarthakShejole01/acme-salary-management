@@ -91,6 +91,38 @@ class EmployeeRepositoryTest {
 				.hasMessageContaining("ck_employee_salary_positive");
 	}
 
+	@Test
+	void finds_existing_email_ignoring_case() {
+		this.repository.saveAndFlush(employee("EMP-00001", "priya.sharma@acme.com", "50000"));
+
+		boolean exists = this.repository.existsByEmailIgnoreCase("Priya.Sharma@ACME.com");
+
+		assertThat(exists).isTrue();
+	}
+
+	@Test
+	void ignores_the_employee_itself_when_checking_code_and_email_for_update() {
+		Employee saved = this.repository.saveAndFlush(employee("EMP-00001", "priya.sharma@acme.com", "50000"));
+
+		boolean codeTaken = this.repository.existsByEmployeeCodeAndIdNot("EMP-00001", saved.getId());
+		boolean emailTaken = this.repository.existsByEmailIgnoreCaseAndIdNot("PRIYA.SHARMA@acme.com", saved.getId());
+
+		assertThat(codeTaken).isFalse();
+		assertThat(emailTaken).isFalse();
+	}
+
+	@Test
+	void detects_code_and_email_held_by_another_employee_for_update() {
+		this.repository.saveAndFlush(employee("EMP-00001", "priya.sharma@acme.com", "50000"));
+		Employee other = this.repository.saveAndFlush(employee("EMP-00002", "arjun.mehta@acme.com", "50000"));
+
+		boolean codeTaken = this.repository.existsByEmployeeCodeAndIdNot("EMP-00001", other.getId());
+		boolean emailTaken = this.repository.existsByEmailIgnoreCaseAndIdNot("priya.sharma@acme.com", other.getId());
+
+		assertThat(codeTaken).isTrue();
+		assertThat(emailTaken).isTrue();
+	}
+
 	private static Employee employee(String code, String email, String salary) {
 		return new Employee(code, "Priya Sharma", email, "Software Engineer", "Engineering", Country.IN,
 				new BigDecimal(salary), EmploymentType.FULL_TIME, LocalDate.of(2022, 4, 1));
