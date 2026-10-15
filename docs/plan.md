@@ -40,7 +40,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 14. `EmployeeGenerator` (pure, seeded `Random`): names from `first_names.txt` / `last_names.txt`; salary = title band × country factor ± bounded noise; tests for count, determinism, ranges, unique codes/emails.
 15. `SeedRunner`: JDBC batch insert (batch 1,000), idempotent (skips if data exists; `--reset` option), runs via Spring profile `seed`. Record timing for `performance.md`.
 
-### Step 5 — Insights ◐
+### Step 5 — Insights ☑
 16. `GET /api/insights/countries` — headcount, min, max, avg, median (`percentile_cont`) per country in local currency.
 17. `GET /api/insights/countries/{code}/job-titles` — per-title stats within a country.
 18. `GET /api/insights/countries/{code}/distribution` — histogram buckets (`width_bucket`).
@@ -76,3 +76,4 @@ Each query tested on a small known dataset (e.g. 5 salaries → known median).
 - **2026-10-15 — Histogram with "nice" bucket edges.** Bucket width = (max − min) / 10 rounded up to 1, 2, 2.5 or 5 × 10ⁿ (whole cents), first edge rounded down to a multiple of it, so HR sees ₹5L or £10k steps instead of edges like 16,234.57. Counts via `width_bucket`; empty buckets returned with 0.
 - **2026-10-15 — Exchange rates from the ECB, not invented.** V2 holds the European Central Bank euro reference rates of 2026-10-14, converted to USD per unit (8 places), so "rates as of" in the UI is a real, citable date. New rates = new migration.
 - **2026-10-15 — USD summary converts per currency, rounds once.** Salaries are summed per currency in SQL; each total is converted exactly (`numeric × rate`), the USD values are added and rounded half-up to cents once. A currency without a rate fails loudly (`MissingExchangeRateException`) rather than being left out of the total. Verified on the seed: API total equals an independent `sum(salary × usd_rate)` to the cent.
+- **2026-10-15 — CSV export: streamed, Excel-friendly, injection-safe.** Same filters/sort as the list; read in pages of 1,000 (flat memory); UTF-8 BOM so Excel shows accents; RFC 4180 quoting; text starting with `= + - @`, tab or CR prefixed with `'` (OWASP CSV injection) because HR opens the file in Excel. All 10k rows in ~0.3 s.

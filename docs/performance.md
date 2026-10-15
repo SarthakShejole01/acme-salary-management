@@ -15,6 +15,7 @@ Targets from [`requirements.md`](requirements.md): list / search / filter **< 30
 | `GET /api/employees?country=IN&jobTitle=Software Engineer` | 27 ms |
 | `GET /api/employees?sort=salary,desc&page=40` | 35 ms |
 | `GET /api/reference-data` | 20 ms |
+| `GET /api/employees/export.csv` (all 10,000 rows, 1.1 MB, streamed in pages of 1,000) | 292 ms |
 
 **Search query plan** (`lower(full_name|employee_code|email) like '%sharma%'`, `order by full_name, id limit 20`): sequential scan + top-N heapsort, **13.8 ms** execution.
 

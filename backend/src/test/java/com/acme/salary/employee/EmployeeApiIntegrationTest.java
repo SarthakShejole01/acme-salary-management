@@ -62,6 +62,17 @@ class EmployeeApiIntegrationTest {
 		assertThat(this.mvc.get().uri(location)).hasStatus(HttpStatus.NOT_FOUND);
 	}
 
+	@Test
+	void streams_a_csv_of_the_filtered_employees_from_the_database() {
+		createEmployee("EMP-00001", "priya.sharma@acme.com");
+
+		assertThat(this.mvc.get().uri("/api/employees/export.csv?search=priya"))
+			.hasStatusOk()
+			.body()
+			.asString()
+			.contains("EMP-00001,Priya Sharma,priya.sharma@acme.com,Software Engineer,Engineering,IN,INR,2400000.00");
+	}
+
 	private String createEmployee(String code, String email) {
 		var result = this.mvc.post().uri("/api/employees").contentType(MediaType.APPLICATION_JSON)
 				.content(json(code, email)).exchange();
