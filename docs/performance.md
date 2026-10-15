@@ -42,5 +42,7 @@ Same setup, against the 10,000 seeded employees. End-to-end HTTP, best of 5 afte
 | Request | Time |
 |---------|------|
 | `GET /api/insights/countries` (8 countries: headcount, min, max, avg, exact median) | 18 ms |
+| `GET /api/insights/countries/IN/job-titles` (19 titles) | 10 ms |
+| `GET /api/insights/countries/US/job-titles` | 10 ms |
 
 One `GROUP BY country_code, currency` query with `percentile_disc`; no rows are loaded into the application.
