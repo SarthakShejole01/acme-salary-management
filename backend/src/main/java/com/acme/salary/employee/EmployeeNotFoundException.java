@@ -1,6 +1,8 @@
 package com.acme.salary.employee;
 
-public class EmployeeNotFoundException extends RuntimeException {
+import com.acme.salary.common.NotFoundException;
+
+public class EmployeeNotFoundException extends NotFoundException {
 
 	EmployeeNotFoundException(Long id) {
 		super("Employee " + id + " does not exist");
