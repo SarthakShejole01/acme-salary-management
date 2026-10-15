@@ -140,6 +140,19 @@ describe('EmployeesPage', () => {
     expect(rows(element)).toHaveLength(1);
   });
 
+  it('hides_a_stale_employee_count_when_a_later_load_fails', async () => {
+    const element = await render();
+    expect(element.querySelector('.count')?.textContent).toContain('45 employees');
+    api.respond = () => throwError(() => new Error('down'));
+    const country = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }));
+
+    await country.open();
+    await country.clickOptions({ text: 'India' });
+
+    expect(element.textContent).toContain('Could not load employees');
+    expect(element.querySelector('.count')).toBeNull();
+  });
+
   it('filters_by_country_and_returns_to_the_first_page', async () => {
     await render();
     const country = await loader.getHarness(MatSelectHarness.with({ selector: '[data-testid="country-filter"]' }));
@@ -207,5 +220,19 @@ describe('EmployeesPage', () => {
     await fixture.whenStable();
 
     expect(api.last()).toMatchObject({ search: '', country: '', department: '', jobTitle: '', page: 0 });
+    expect((element.querySelector('[data-testid="search"]') as HTMLInputElement).value).toBe('');
+  });
+
+  it('empties_the_search_box_when_filters_are_cleared', async () => {
+    api.respond = () => of(page([]));
+    const element = await render();
+    const input = element.querySelector('[data-testid="search"]') as HTMLInputElement;
+    input.value = 'zzzz';
+    input.dispatchEvent(new Event('input'));
+
+    (element.querySelector('[data-testid="clear-filters"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(input.value).toBe('');
   });
 });
