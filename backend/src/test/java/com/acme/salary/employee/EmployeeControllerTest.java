@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import com.acme.salary.common.PageResponse;
 import com.acme.salary.currency.Money;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
@@ -64,6 +65,9 @@ class EmployeeControllerTest {
 
 	@MockitoBean
 	private EmployeeService service;
+
+	@MockitoBean
+	private EmployeeCsvExporter exporter;
 
 	@Test
 	void creates_employee_and_returns_201_with_its_location() {
@@ -271,6 +275,29 @@ class EmployeeControllerTest {
 				.hasStatus(HttpStatus.BAD_REQUEST)
 				.hasContentType(MediaType.APPLICATION_PROBLEM_JSON);
 		verifyNoInteractions(this.service);
+	}
+
+	@Test
+	void downloads_the_filtered_list_as_a_csv_file() {
+		given(this.exporter.export(any(), any()))
+			.willReturn((out) -> out.write("Employee code\r\n".getBytes(StandardCharsets.UTF_8)));
+
+		assertThat(this.mvc.get().uri("/api/employees/export.csv?country=IN&sort=salary,desc"))
+			.hasStatusOk()
+			.hasHeader("Content-Disposition", "attachment; filename=\"employees.csv\"")
+			.hasContentType("text/csv;charset=UTF-8")
+			.hasBodyTextEqualTo("Employee code\r\n");
+		verify(this.exporter).export(new EmployeeSearchCriteria(null, Country.IN, null, null),
+				Sort.by(Sort.Direction.DESC, "salary"));
+	}
+
+	@Test
+	void rejects_an_export_with_an_unsupported_sort_with_400() {
+		given(this.exporter.export(any(), any())).willThrow(new UnsupportedSortException("createdAt"));
+
+		assertThat(this.mvc.get().uri("/api/employees/export.csv?sort=createdAt"))
+			.hasStatus(HttpStatus.BAD_REQUEST)
+			.bodyJson().extractingPath("$.errors[0].field").isEqualTo("sort");
 	}
 
 	private static EmployeeResponse employee(Long id) {
