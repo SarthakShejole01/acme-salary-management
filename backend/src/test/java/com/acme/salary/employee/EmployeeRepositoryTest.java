@@ -11,6 +11,7 @@ import java.util.Currency;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.context.annotation.Import;
@@ -24,9 +25,13 @@ class EmployeeRepositoryTest {
 	@Autowired
 	private EmployeeRepository repository;
 
+	@Autowired
+	private TestEntityManager entityManager;
+
 	@Test
 	void saves_and_reloads_all_employee_fields() {
 		Employee saved = this.repository.saveAndFlush(employee("EMP-00001", "priya.sharma@acme.com", "2400000"));
+		this.entityManager.clear();
 
 		Employee reloaded = this.repository.findById(saved.getId()).orElseThrow();
 
