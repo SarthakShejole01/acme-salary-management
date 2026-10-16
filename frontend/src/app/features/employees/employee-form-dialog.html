@@ -1,0 +1,105 @@
+<h2 mat-dialog-title>{{ title() }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="fields">
+    @if (saving()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Saving" />
+    }
+    @if (generalError(); as error) {
+      <p class="general-error" role="alert">{{ error }}</p>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Employee code</mat-label>
+      <input matInput data-testid="employeeCode" formControlName="employeeCode" />
+      <mat-error>{{ message('employeeCode') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Full name</mat-label>
+      <input matInput data-testid="fullName" formControlName="fullName" />
+      <mat-error>{{ message('fullName') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="wide">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" data-testid="email" formControlName="email" />
+      <mat-error>{{ message('email') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Job title</mat-label>
+      <input
+        matInput
+        data-testid="jobTitle"
+        formControlName="jobTitle"
+        [matAutocomplete]="jobTitles"
+      />
+      <mat-autocomplete #jobTitles="matAutocomplete">
+        @for (option of jobTitleOptions(); track option) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-autocomplete>
+      <mat-error>{{ message('jobTitle') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Department</mat-label>
+      <input
+        matInput
+        data-testid="department"
+        formControlName="department"
+        [matAutocomplete]="departments"
+      />
+      <mat-autocomplete #departments="matAutocomplete">
+        @for (option of departmentOptions(); track option) {
+          <mat-option [value]="option">{{ option }}</mat-option>
+        }
+      </mat-autocomplete>
+      <mat-error>{{ message('department') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Country</mat-label>
+      <mat-select data-testid="country" formControlName="country">
+        @for (country of data.referenceData.countries; track country.code) {
+          <mat-option [value]="country.code">{{ country.name }}</mat-option>
+        }
+      </mat-select>
+      <mat-error>{{ message('country') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ salaryLabel() }}</mat-label>
+      <input matInput inputmode="decimal" data-testid="salary" formControlName="salary" />
+      <mat-hint>Gross base pay per year</mat-hint>
+      <mat-error>{{ message('salary') }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Employment type</mat-label>
+      <mat-select data-testid="employmentType" formControlName="employmentType">
+        @for (type of employmentTypes; track type.value) {
+          <mat-option [value]="type.value">{{ type.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Hire date</mat-label>
+      <input
+        matInput
+        type="date"
+        data-testid="hireDate"
+        formControlName="hireDate"
+        [max]="today()"
+      />
+      <mat-error>{{ message('hireDate') }}</mat-error>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" data-testid="cancel" (click)="cancel()">Cancel</button>
+    <button mat-flat-button type="submit" data-testid="save" [disabled]="saving()">Save</button>
+  </mat-dialog-actions>
+</form>

@@ -9,7 +9,7 @@ This file tells AI assistants (Claude Code, Cursor, Copilot) how to work in this
 3. **Stay in scope.** Build only what `docs/requirements.md` lists. If something seems missing, ask — do not add features speculatively.
 4. **Explain trade-offs.** When there is more than one reasonable approach, state the options and the choice before coding. Significant decisions get an ADR in `docs/adr/`.
 
-## Backend conventions (Java 21, Spring Boot 3)
+## Backend conventions (Java 21, Spring Boot 4)
 
 - Package by feature: `employee`, `insights`, `currency`, `seed`, `common`.
 - **Money is `BigDecimal` wrapped in the `Money` value object. Never `double` or `float`.**

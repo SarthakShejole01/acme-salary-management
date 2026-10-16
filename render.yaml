@@ -1,0 +1,32 @@
+# Render blueprint: one Docker web service built from the Dockerfile in this repository.
+# Secrets are marked `sync: false`, so Render asks for them when the blueprint is first applied and they never
+# appear in the repository. See docs/deployment.md for the full walkthrough.
+services:
+  - type: web
+    name: acme-salary-management
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      # Makes the application refuse to start without a login (APP_SECURITY_*), and applies application-prod.yml.
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # The container listens on 8080 (see the Dockerfile).
+      - key: PORT
+        value: "8080"
+      # Neon, direct (non-pooled) connection, e.g. jdbc:postgresql://<host>/<database>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # The shared login protecting the whole application (ADR 005).
+      - key: APP_SECURITY_USERNAME
+        sync: false
+      - key: APP_SECURITY_PASSWORD
+        sync: false

@@ -21,6 +21,11 @@ build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
+.classpath
+.project
+.settings/
+.factorypath
+bin/
 *.log
 hs_err_pid*
 
@@ -31,3 +36,6 @@ dist/
 coverage/
 npm-debug.log*
 yarn-error.log*
+
+# --- Angular build copied into the Spring Boot jar (Dockerfile) ---
+backend/src/main/resources/static/

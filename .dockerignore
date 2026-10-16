@@ -1,0 +1,14 @@
+# Keep the build context small and the layer cache stable.
+.git
+.github
+docs
+**/node_modules
+**/dist
+**/.angular
+**/build
+**/.gradle
+backend/src/main/resources/static
+**/*.log
+.env
+.env.*
+!.env.example

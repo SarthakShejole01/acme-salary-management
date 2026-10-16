@@ -8,7 +8,7 @@ Insights (min/max/avg/median per country, per-title stats, histograms) span all 
 
 ## Decision
 
-Implement insights as SQL aggregate queries (`GROUP BY`, `percentile_cont`, `width_bucket`) behind an `InsightsQueryRepository`, returning small result DTOs. Back them with indexes on `country_code` and `(country_code, job_title)`.
+Implement insights as SQL aggregate queries (`GROUP BY`, `percentile_cont`, `width_bucket`) behind an `InsightsQueryRepository`, returning small result DTOs. Back them with indexes on `country_code` and `(country_code, job_title)`. *(Amended 2026-10-15: implemented as `InsightsQueries` over `JdbcTemplate`; median via `percentile_disc` to stay exact `numeric` instead of `percentile_cont`'s `double precision`; the `(country_code, job_title)` index also serves country-only queries.)*
 
 ## Reasons
 

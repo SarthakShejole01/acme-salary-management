@@ -1,0 +1,14 @@
+# Profile "prod": the hosted instance (Render web service + Neon PostgreSQL).
+# Secrets come from environment variables (DB_URL, DB_USERNAME, DB_PASSWORD, APP_SECURITY_*), never from this file.
+# The profile refuses to start without APP_SECURITY_USERNAME and APP_SECURITY_PASSWORD (see AppSecurityProperties).
+spring:
+  datasource:
+    hikari:
+      # One HR user needs very few connections, and the free database tier allows only a handful.
+      maximum-pool-size: 5
+      minimum-idle: 1
+      # Neon closes idle connections and pauses its compute when unused: retire connections before the
+      # server does, probe the ones kept, and allow time for a paused database to wake up.
+      max-lifetime: 240000
+      keepalive-time: 120000
+      connection-timeout: 30000

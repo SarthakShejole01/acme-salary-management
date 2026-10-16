@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: salary
+  datasource:
+    # Local defaults match docker-compose.yml; every value can be overridden by env vars.
+    url: ${DB_URL:jdbc:postgresql://localhost:${DB_PORT:5433}/${DB_NAME:acme_salary}}
+    username: ${DB_USERNAME:acme}
+    password: ${DB_PASSWORD:acme}
+    hikari:
+      data-source-properties:
+        # PostgreSQL driver sends JDBC batches as multi-row INSERTs: seeding 10k rows ~2.4 s -> ~0.9 s.
+        reWriteBatchedInserts: true
+  jpa:
+    # Flyway owns the schema; Hibernate only checks that entities match it.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  data:
+    web:
+      pageable:
+        # Keeps any single list request cheap, even at 10k employees.
+        max-page-size: 100
+server:
+  # Behind a TLS-terminating proxy (Render): honour X-Forwarded-* so generated links use https.
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+    min-response-size: 1KB

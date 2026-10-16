@@ -1,0 +1,17 @@
+mat-toolbar {
+  gap: 8px 24px;
+  /* Let the product name and links wrap on a narrow window instead of overflowing. */
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 56px;
+  padding-block: 4px;
+}
+
+nav a.active {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+main {
+  padding: 24px;
+}

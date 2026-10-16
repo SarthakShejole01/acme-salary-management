@@ -1,0 +1,41 @@
+# Local development database. Not used by tests (they start their own
+# PostgreSQL via Testcontainers) and not used in production.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-acme_salary}
+      POSTGRES_USER: ${DB_USERNAME:-acme}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-acme}
+    ports:
+      # 5433 on the host so it does not clash with a locally installed PostgreSQL.
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The production image (Angular + Spring Boot) against the database above:
+  #   docker compose --profile app up --build
+  app:
+    profiles: ["app"]
+    image: acme-salary:local
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-acme_salary}
+      DB_USERNAME: ${DB_USERNAME:-acme}
+      DB_PASSWORD: ${DB_PASSWORD:-acme}
+      # Optional login; empty means open (see .env.example).
+      APP_SECURITY_USERNAME: ${APP_SECURITY_USERNAME:-}
+      APP_SECURITY_PASSWORD: ${APP_SECURITY_PASSWORD:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:

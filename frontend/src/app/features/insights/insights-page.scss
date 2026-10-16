@@ -1,0 +1,87 @@
+h1 {
+  margin: 0 0 16px;
+  font: var(--mat-sys-headline-small);
+}
+
+h2 {
+  margin: 32px 0 4px;
+  font: var(--mat-sys-title-large);
+}
+
+h3 {
+  margin: 24px 0 4px;
+  font: var(--mat-sys-title-medium);
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  mat-progress-bar,
+  .note,
+  .message {
+    flex-basis: 100%;
+  }
+
+  mat-card {
+    min-width: 220px;
+  }
+
+  .label {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-large);
+  }
+
+  .value {
+    margin-top: 4px;
+    font: var(--mat-sys-headline-medium);
+  }
+}
+
+.note,
+.hint {
+  margin: 4px 0 12px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.prompt {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Wide tables scroll inside their own box, so a narrow window does not stretch the whole page. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.numeric {
+  text-align: right;
+}
+
+tr.selected td {
+  background: var(--mat-sys-secondary-container);
+}
+
+.select {
+  margin-left: -8px;
+}
+
+.details {
+  margin-top: 8px;
+}
+
+.message {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.error {
+    color: var(--mat-sys-error);
+  }
+}
