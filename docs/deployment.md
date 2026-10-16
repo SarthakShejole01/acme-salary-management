@@ -23,7 +23,7 @@ You do three things; everything else is already in the repository (`render.yaml`
 
 ## 1. Neon: the database
 
-1. Create a project: **PostgreSQL 16**, region **AWS US West 2 (Oregon)**, to sit next to Render's default Oregon region.
+1. Create a project: **PostgreSQL 16** (or newer: the live database runs 18.6 and works unchanged), region **AWS US West 2 (Oregon)**, to sit next to Render's default Oregon region.
 2. Open **Connection Details**. Switch **Connection pooling off** so you get the *direct* host (it does **not** contain `-pooler`). Flyway and the JDBC driver expect a direct connection.
 3. Write down:
    - **host**, e.g. `ep-quiet-sun-123456.us-west-2.aws.neon.tech`
@@ -100,6 +100,14 @@ Expected last line: `Seeded 10000 employees in … ms`. Running it again prints 
 | Build fails with an out-of-memory error | Render's free builder is small. Fallback: build the image locally, push it to a registry (for example GitHub Container Registry), and point Render at the image instead of the Dockerfile. |
 | App is empty / *"Could not load employees"* | The seed has not run against this database (step 2), or a different database was seeded. |
 | Browser keeps asking for the login | Wrong username or password in Render's environment; the browser reuses the last answer until you close the tab. |
+
+## Deployed instance (2026-10-16)
+
+Live at <https://acme-salary-management-grfk.onrender.com>. Observed on the real services:
+
+- The seed against Neon (PostgreSQL 18.6, direct connection, `sslmode=require&channelBinding=require`) applied both Flyway migrations and loaded 10,000 employees in 13.9 s. That is network latency from a laptop; the same seed takes 0.9 s against a local database.
+- Without a login: `/actuator/health` answers `UP` (the health check includes a database check, so Render reached Neon); `/employees`, `/api/employees` and the CSV export answer 401 with a `Basic` challenge; HTTP redirects to HTTPS; responses carry `nosniff`, `X-Frame-Options: DENY` and HSTS.
+- The logged-in experience is checked by the owner with the steps in section 4.
 
 ## What was verified, and what could not be
 

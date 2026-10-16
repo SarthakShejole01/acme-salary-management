@@ -6,7 +6,7 @@ Web-based salary management for ACME's HR team: maintain salary data for ~10,000
 
 |  |  |
 |---|---|
-| **Live demo** | _Added after deployment._ Protected by a shared login; the credentials are given separately, never in this repository. |
+| **Live demo** | [https://acme-salary-management-grfk.onrender.com](https://acme-salary-management-grfk.onrender.com), on Render with a Neon database. Protected by a shared login; the credentials are given separately, never in this repository. The free instance sleeps when idle, so the first request after a pause can take about a minute. |
 | **Demo video** | _Added with the submission._ |
 | **Scope & exclusions** | [`docs/requirements.md`](docs/requirements.md) |
 
