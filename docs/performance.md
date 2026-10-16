@@ -76,3 +76,16 @@ Built and run locally (Docker Desktop, PostgreSQL 16 container, the 10,000 seede
 
 JVM flags for a small instance: `-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k` (override with `JAVA_TOOL_OPTIONS`).
 
+## Hosted instance (Render free web service + Neon free database)
+
+Measured on 2026-10-16, from a laptop, **without a login**, so only the open health endpoint and the 401 challenge can be timed; no application endpoint was measured on the hosted instance.
+
+| Measure | Result |
+|---------|--------|
+| Seeding 10,000 employees into Neon from a laptop | 13.9 s (0.9 s against a local database; the difference is network latency) |
+| Container start with Neon waking from idle | 44.6 s |
+| `GET /actuator/health` (TLS included), two requests | 0.92 s, then 0.67 s |
+| `GET /employees` without a login (401) | 0.49 s |
+
+The roughly half-second floor on every request is the round trip from the laptop to the hosting region, not application time: compare the 9–56 ms local figures above. The free plans sleep when idle (see [deployment.md](deployment.md)), so a first request after a pause is much slower.
+
